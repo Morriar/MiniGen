@@ -1,0 +1,9 @@
+MiniGen is a mini object oriented language dedicated to genericity experimentations.
+
+Features:
+
+* Simple and generic classes;
+* Multiple formal types;
+* Simple and multiple inheritance;
+* Conservation of generic types at compile time (no erase);
+* Comparison of generic types in linear time;

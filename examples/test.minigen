@@ -1,0 +1,14 @@
+class Number end
+class Bool end
+class Int super Number end
+
+class A[T, U] end
+
+class B[V] super A[Object, V] end
+
+class C[X, Y, Z] super B[Z] end
+
+
+
+A[Bool, Bool] isa A[Object, Object]
+A[Object, Object] isa A[Bool, Bool]

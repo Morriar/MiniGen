@@ -1,0 +1,10 @@
+# Fail : Formal type X already declared
+#class B1[X, X] end
+
+# Fail : Formal type conflict
+#class Int end
+#class Bool end
+#class A[T] end
+#class B[T] super A[T] end
+#class C super A[Bool] end
+#class D super B[Int], C end

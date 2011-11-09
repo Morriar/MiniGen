@@ -1,0 +1,89 @@
+Package minigen.syntax3;
+
+Helpers
+
+  upper = ['A'..'Z'];
+  lower = ['a'..'z'];
+  letter = [upper+lower];
+  digit = ['0'..'9'];
+
+  cr = 13;
+  lf = 10;
+  tab = 9;
+
+  eol = cr | lf | cr lf;
+
+  blank = ' ' | eol | tab;
+
+  not_eol = [[0..127]-[cr+lf]];
+
+Tokens
+
+  comma = ',';
+
+  lb = '[';
+  rb = ']';
+
+  kend = 'end';
+  kisa = 'isa';
+  kclass = 'class';
+  ksuper = 'super';
+  knew = 'new';
+
+  name = upper (letter | digit)*;
+  
+  blanks = blank+;
+  comment = '#' not_eol*;
+
+Ignored Tokens
+  blanks, comment;
+
+Productions
+
+  program =
+    [classes]: class_decl* [instrs]:instr*;
+    
+  class_decl = 
+  	kclass name formal_decls? super_decls? kend;
+  	
+  formal_decls =
+  	lb formal_decl+ rb;
+  	
+  formal_decl =
+  	name additional_formal_types*;
+  	
+  additional_formal_types = 
+  	comma name;
+  	
+  type =
+  	name generic_part?;
+  	
+  generic_part =
+  	lb generic_types rb;
+  	
+  generic_types = 
+  	type additional_types*;
+  	
+  additional_types = 
+  	comma type;
+  	
+  super_decls =
+    ksuper super_type additional_supers*;
+  
+  additional_supers = 
+  	comma super_type;
+    
+  super_type =
+  	name super_generic_part?;
+  	
+  super_generic_part =
+  	lb super_generic_types rb;
+  	
+  super_generic_types = 
+  	super_type super_additional_types*;
+  	
+  super_additional_types = 
+  	comma super_type;
+  	
+  instr =
+    {isa} [left]:type kisa [right]:type;

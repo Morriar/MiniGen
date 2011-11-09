@@ -1,0 +1,87 @@
+class AbstractArray[E] super AbstractArrayRead[E], Sequence[E] end
+class AbstractArrayRead[E] super SequenceRead[E] end
+class AbstractSorter[E] super Object end
+class AbstractString super AbstractArrayRead[Char] end
+class ArrayCapable[E] super Object end
+class Array[E] super AbstractArray[E], ArrayCapable[E] end
+class ArrayIterator[E] super IndexedIterator[E] end
+class ArrayMap[K, E] super CoupleMap[K, E] end
+class ArraySet[E] super Set[E] end
+class ArraySetIterator[E] super Iterator[E] end
+class BMPattern super Pattern end
+class Bool super Object end
+class BufferedIStream super IStream end
+class Buffer super AbstractString, Comparable, StringCapable, AbstractArray[Char] end
+class Char super Discrete end
+class Collection[E] super Object end
+class ComparableSorter[E] super AbstractSorter[E] end
+class Comparable super Object end
+class Container[E] super Collection[E] end
+class ContainerIterator[E] super Iterator[E] end
+class Couple[F, S] super Object end
+class CoupleMapIterator[K, E] super MapIterator[K, E] end
+class CoupleMap[K, E] super Map[K, E] end
+class Discrete super Comparable end
+class FDIOStream super FDIStream, FDOStream, IOStream end
+class FDIStream super FDStream, IStream end
+class FDOStream super FDStream, OStream end
+class FDStream super IOS end
+class FileStat super Pointer end
+class Float super Object end
+class FStream super IOS, NativeFileCapable end
+class HashCollection[K, N, E] super Collection[E], ArrayCapable[E] end
+class HashMapIterator[K, V] super MapIterator[K, V] end
+class HashMap[K, V] super Map[K, V], HashCollection[K, HashMapNode[K, V], V] end
+class HashMapNode[K, V] super HashNode[K] end
+class HashNode[K] super Object end
+class HashSet[E] super Set[E], HashCollection[E, HashSetNode[E], E] end
+class HashSetIterator[E] super Iterator[E] end
+class HashSetNode[E] super HashNode[E] end
+class IFStream super FStream, BufferedIStream end
+class IndexedIterator[E] super MapIterator[Int, E] end
+class Int super Discrete end
+class IOProcess super IProcess, OProcess, IOStream end
+class IOS super Object end
+class IOStream super IStream, OStream end
+class IProcess super Process, IStream end
+class IStream super IOS end
+class Iterator[E] super Object end
+class IteratorRange[E] super Iterator[E] end
+class List[E] super Sequence[E] end
+class ListIterator[E] super IndexedIterator[E] end
+class ListNode[E] super Container[E] end
+class MapIterator[K, E] super Iterator[E] end
+class Map[K, E] super RemovableCollection[E], MapRead[K, E] end
+class MapRead[K, E] super Collection[E] end
+class Match super Object end
+class NaiveCollection[E] super Collection[E] end
+class NativeArray[E] super Object end
+class NativeFileCapable super Object end
+class NativeFile super Pointer end
+class NativeProcess super Pointer end
+class NativeString super Object end
+class OFStream super FStream, OStream end
+class OProcess super Process, OStream end
+class OStream super IOS end
+class Pattern super Object end
+class Pointer super Object end
+class Process super Object end
+class Range[E] super Collection[E] end
+class RemovableCollection[E] super Collection[E] end
+class Sequence[E] super SequenceRead[E], Map[Int, E], SimpleCollection[E] end
+class SequenceRead[E] super MapRead[Int, E] end
+class Set[E] super SimpleCollection[E] end
+class SimpleCollection[E] super RemovableCollection[E] end
+class Stderr super OFStream end
+class Stdin super IFStream end
+class Stdout super OFStream end
+class StringCapable super Object end
+class String super Pattern, Comparable, AbstractString end
+class Symbol super Object end
+class Sys super Object end
+
+# Tests
+
+Int isa Discrete # prints TRUE
+AbstractString isa AbstractArrayRead[Char] # prints TRUE
+AbstractString isa MapRead[Int, Char] # prints TRUE

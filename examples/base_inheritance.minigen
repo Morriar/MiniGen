@@ -1,0 +1,48 @@
+# Test simple inheritance
+class A end
+class B end
+class C super A end
+#class D super A end
+#class F super C, D end
+#class G super C, D end
+
+# Test complex inheritance 
+#class Y1 end
+#class Y2 super Y1 end
+#class Y3 super Y2, Y4 end 
+#class Y4 super Y1 end
+#class Y5 super Y4, Y2 end
+#class Y6 super Y3, Y5 end
+
+# Test generic super classes
+class X1[X : Object, Y: A, Z:Object] end
+class X2[X: Object] super X1[X, C, B] end
+
+# Must fail: Bad bound
+#class C1 end
+#class C2 super C1 end
+#class C3[T: C1] end
+#class C4 super C3[Object] end
+
+
+# Must fail: Herit himself
+#class Z1 super Z1 end
+
+# Must fail: Unknown super class
+#class Z2 super Z999 end
+
+# Must fail: Already declared as parent
+#class Z3 super A, A end
+
+# Must fail: Inheritance loop
+#class Z4 super Z5 end
+#class Z5 super Z4 end
+
+# Must fail: Formal type arity
+#class F1[X: Object] end
+#class F2 super F1 end
+
+# Must fail: Formal type not declared
+#class F1[X: Object] end
+#class F2 super F1[X] end
+

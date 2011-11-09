@@ -1,0 +1,41 @@
+# For : Simple tests
+class A1 end
+class A2 super A1 end
+class A3 super A2 end
+class A4 super A3 end
+class A5 end
+
+# For medium tests
+class Bool end
+class Int end
+
+class A[T, U] end
+class B[T, U] super A[Object, Object] end
+class C[T] super A[Bool, Int] end
+class D super C[Object] end
+
+# Simple tests
+A1 isa A1	# prints TRUE
+A2 isa A1	# prints TRUE
+A4 isa A1	# prints TRUE
+A5 isa A1	# prints FALSE
+A1 isa A5	# prints FALSE 
+
+# Medium tests
+Bool isa Int 								# prints FALSE
+B[Int, Bool] isa A[Object, Object]			# prints TRUE
+B[Object, Object] isa A[Int, Bool]			# prints FALSE
+B[Object, Object] isa A[Object, Object]	# prints TRUE
+C[Int] isa A[Bool, Int]					# prints TRUE
+D isa A[Object, Object]					# prints TRUE
+C[Bool] isa A[Bool, Int]					# prints TRUE
+
+# Must fail : type undeclared
+#Toto isa Bbb
+
+# Must fail : type undeclared
+#C[Toto] isa B[Int]
+
+# Must fail : generic arity
+#C isa A
+
