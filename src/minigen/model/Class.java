@@ -1,25 +1,26 @@
 package minigen.model;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import minigen.exception.InterpreterException;
 import minigen.exception.SemanticException;
 import minigen.syntax3.node.Token;
 
 public class Class {
 
 	private int classId;
-	private int color;
+	private Integer color;
 	private int depth;
 	private String name;
 	private Token location;
 
 	private Map<String, FormalType> formalTypes = new HashMap<String, FormalType>();
-	
+
 	private List<FormalType> orderedFormalTypes = new ArrayList<FormalType>();
 
 	private Map<String, Class> parents = new HashMap<String, Class>();
@@ -101,38 +102,41 @@ public class Class {
 
 		return str;
 	}
-	
+
 	/*
 	 * Rapid isa, constant time execution
 	 */
 	public boolean isa(Class c) {
-		return this.adaptationsTable[c.getClassId()] != null;
+
+		if (c.getColor() >= this.adaptationsTable.length) {
+			return false;
+		}
+
+		Adaptation adaptation = this.adaptationsTable[c.getColor()];
+
+		return adaptation != null && adaptation.isFor(c);
 	}
 
 	/*
 	 * Get the adaptation to specified parent
 	 */
 	public Adaptation getAdaptation(Class to) {
-		return this.adaptationsTable[to.getClassId()];
+		return this.adaptationsTable[to.getColor()];
 	}
 
 	/*
-	 * Register adaptation to super class
-	 * Throw Exception if formal type conflict is found
+	 * Register adaptation to super class Throw Exception if formal type
+	 * conflict is found
 	 */
 	public void addAdaptation(Class to, Adaptation adaptation) {
-		if(to.getClassId() > this.adaptationsTable.length) {
-			throw new InterpreterException("Class id for class " + to + " is out of bound for table adaptation of class " + this);
+		if (this.adaptationsTable == null) {
+			this.adaptationsTable = new Adaptation[to.getColor() + 1];
+		} else if (to.getColor() >= this.adaptationsTable.length) {
+			// Need to enlarge the array
+			this.adaptationsTable = Arrays.copyOf(this.adaptationsTable,
+					to.getColor() + 1);
 		}
-		
-		/*if(this.adaptationsTable[to.getClassId()] != null) {
-			System.out.println(to);
-			System.out.println(this.adaptationsTable[to.getClassId()]);
-			if(!adaptation.isCompatibleTo(this.adaptationsTable[to.getClassId()])) {
-				throw new SemanticException(location, "Formal type definition conflict detected for class " + this + " with parent " + to);
-			}
-		}*/
-		this.adaptationsTable[to.getClassId()] = adaptation;
+		this.adaptationsTable[to.getColor()] = adaptation;
 	}
 
 	/*
@@ -201,8 +205,8 @@ public class Class {
 		String print = "{";
 		for (int i = 0; i < this.adaptationsTable.length; i++) {
 			print += "[" + i + "]" + " = " + this.adaptationsTable[i];
-			
-			if(i < this.adaptationsTable.length - 1) {
+
+			if (i < this.adaptationsTable.length - 1) {
 				print += ", ";
 			}
 		}
@@ -280,7 +284,7 @@ public class Class {
 	public void setSubClasses(List<Class> subClasses) {
 		this.subClasses = subClasses;
 	}
-	
+
 	public int getDegree() {
 		return this.subClasses.size() + this.parents.size();
 	}
@@ -288,19 +292,36 @@ public class Class {
 	public void setClassId(int classId) {
 		this.classId = classId;
 	}
-	
-	public Collection<Class> getRelatedTo() {
-		
-		Collection<Class> result = new ArrayList<Class>();
-		result.addAll(this.getParents());
-		result.addAll(this.getSubClasses());
-		
+
+	public HashSet<Class> getRelatedTo() {
+
+		HashSet<Class> result = new HashSet<Class>();
+
+		buildRecursiveParentsRelation(this.getSuperClasses(), result);
+		buildRecursiveChildrenRelation(this.getSubClasses(), result);
+
 		return result;
 	}
-	
+
+	private void buildRecursiveParentsRelation(Collection<Class> toExplore,
+			Collection<Class> relatedTo) {
+		for (Class c : toExplore) {
+			relatedTo.add(c);
+			buildRecursiveParentsRelation(c.getSuperClasses(), relatedTo);
+		}
+	}
+
+	private void buildRecursiveChildrenRelation(Collection<Class> toExplore,
+			Collection<Class> relatedTo) {
+		for (Class c : toExplore) {
+			relatedTo.add(c);
+			buildRecursiveChildrenRelation(c.getSubClasses(), relatedTo);
+		}
+	}
+
 	public boolean isRelatedTo(Class c) {
-		for(Class p : this.getParents()) {
-			if(p.isSameClass(c)) {
+		for (Class p : this.getParents()) {
+			if (p.isSameClass(c)) {
 				return true;
 			}
 		}
@@ -310,17 +331,13 @@ public class Class {
 	public List<Class> getSuperClasses() {
 		return superClasses;
 	}
-	
-	public int getColor() {
+
+	public Integer getColor() {
 		return color;
 	}
 
-	public void setColor(int color) {
+	public void setColor(Integer color) {
 		this.color = color;
-	}
-
-	public void allocateAdaptationTable(int i) {
-		this.adaptationsTable = new Adaptation[i];	
 	}
 
 	public int getDepth() {
@@ -330,5 +347,5 @@ public class Class {
 	public void setDepth(int depth) {
 		this.depth = depth;
 	}
-	
+
 }

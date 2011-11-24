@@ -47,10 +47,13 @@ public class Main {
 			tree.apply(new InheritanceAnalysis(model));
 			
 			// Compute tables
-			new TablesComputation(model);
+			TablesComputation table = new TablesComputation(model);
+			model.maxColor = table.maxColor;
 			
 			// Build type check tables in all classes
-			model.buildAdaptations();
+			//model.buildAdaptations();
+			
+			//TODO colorize and build Border ?
 			
 			// Run interpreter
 			tree.apply(new Interpreter(model));

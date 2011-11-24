@@ -1,7 +1,7 @@
 package minigen;
 
 import minigen.exception.SemanticException;
-import minigen.model.Class;
+import minigen.model.Adaptation;
 import minigen.model.Model;
 import minigen.model.Type;
 import minigen.syntax3.analysis.DepthFirstAdapter;
@@ -19,31 +19,48 @@ public class Interpreter extends DepthFirstAdapter {
 
 	public Interpreter(Model model) {
 		this.model = model;
-		
-		System.out.println("------- File Statistics -------");
-		System.out.println();
-		
-		System.out.println("Classes found : " + model.getClasses().size());
-		System.out.println();
-		
-		System.out.println("Max color : " + model.getMaxColor());
+
+		System.out.println("------- Statistics -------");
 		System.out.println();
 
-		System.out.println("Inheritance relations found:");
-		for (Class c : model.getClasses()) {
-			System.out.println(" - class " + c.toStringWithParents() + " get " + c.getSubClasses().size() + " subclasses (depth : "+ c.getDepth() +")");
+		System.out.println("Classes found: " + model.getClasses().size());
+		System.out.println();
+
+		System.out.println("Max color: " + model.getMaxColor());
+		System.out.println();
+
+		// System.out.println("Inheritance relations found:");
+		// for (Class c : model.getClasses()) {
+		// System.out.println();
+		// System.out.println(" - class " + c.toStringWithParents() + " get " +
+		// c.getSubClasses().size() + " subclasses (depth : "+ c.getDepth()
+		// +")");
+		// }
+		// System.out.println();
+
+		System.out.println("Adaptations tables:");
+		for (minigen.model.Class c : model.getClasses()) {
+			System.out.println(" - For class " + c + "(" + c.getColor()
+					+ ") : " + c.toStringWithAdaptationsTable());
 		}
 		System.out.println();
-		
-		System.out.println("Adaptations tables :");
-		for(minigen.model.Class c : model.getClasses()) {
-			System.out.println(" - For class " + c + "("+ c.getClassId() +") : " + c.toStringWithAdaptationsTable());
+
+		int nbCases = 0;
+		int nbNull = 0;
+		for (minigen.model.Class c : model.getClasses()) {
+			nbCases += c.getAdaptationsTable().length;
+			for (Adaptation a : c.getAdaptationsTable()) {
+				if (a == null) {
+					nbNull++;
+				}
+			}
 		}
-		System.out.println();
-		
+		double percent = nbNull * 100 / nbCases;
+		System.out.println("Taux de trous: " + nbNull + "/" + nbCases + " ("
+				+ percent + "%)");
+
 		System.out.println("-------------------------------");
-		
-		
+
 	}
 
 	private Type computeType(Node node) {
@@ -73,7 +90,6 @@ public class Interpreter extends DepthFirstAdapter {
 		// Check isa and display results
 		System.out.println(" - " + leftType + " isa " + rightType + " => "
 				+ leftType.isa(rightType, leftType));
-		
 
 	}
 

@@ -59,12 +59,12 @@ public class Type {
 	public boolean isa(Type ot, Type base) {
 		
 		// Check rapid subtyping using adaptation table size
-		if(ot.getIntro().getClassId() >= this.getIntro().getAdaptationsTable().length) {
+		if(ot.getIntro().getColor() >= this.getIntro().getAdaptationsTable().length) {
 			return false;
 		}
 		
 		// Get adpatation for ot
-		Adaptation a = this.getIntro().getAdaptationsTable()[ot.getIntro().getClassId()];
+		Adaptation a = this.getIntro().getAdaptationsTable()[ot.getIntro().getColor()];
 		if (a == null) {
 			return false;
 		}

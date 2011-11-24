@@ -1,0 +1,33 @@
+class Collection end
+class ArrayCapable end
+
+class Range super Collection end
+class Container super Collection end
+class NaiveCollection super Collection end
+class RemovableCollection super Collection end
+class MapRead super Collection end
+class HashCollection super Collection, ArrayCapable end
+
+class SequenceRead super MapRead end
+class SimpleCollection super RemovableCollection end
+class Map super MapRead, RemovableCollection end
+
+class CoupleMap super Map end
+class HashMap super Map, HashCollection end
+class Sequence super Map end
+
+class AbsArrayRead super SequenceRead end
+class List super Sequence end
+class ArrayMap super CoupleMap end
+
+class AsbArray super AbsArrayRead, Sequence end
+
+
+class Array super AsbArray, ArrayCapable end  
+class Set super SimpleCollection end
+
+class ArraySet super Set end
+class HashSet super Set, HashCollection end
+
+
+HashSet isa SimpleCollection

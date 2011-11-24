@@ -15,11 +15,14 @@ public class Model implements Comparator<Class> {
 	private Map<String, Class> classesByNames;
 	private Map<Node, Class> classesByNodes;
 	private Map<Class, Integer> colorsByClasses;
-	private int maxColor;
+	public int maxColor;
+	private int tablesSize;
 
 	public Model() {
 		this.classesByNodes = new HashMap<Node, Class>();
 		this.classesByNames = new HashMap<String, Class>();
+		this.maxColor = 0;
+		this.tablesSize = 0;
 	}
 
 	/*
@@ -29,12 +32,10 @@ public class Model implements Comparator<Class> {
 		
 		for (Class c : this.getClasses()) {
 
-			// Allocate table adaptation in class
-			c.allocateAdaptationTable(this.getClasses().size());
-
 			// Computation is based on classe's parents discovery
 			computeAdaptations(c);
 
+			this.tablesSize = c.getAdaptationsTable().length;
 		}
 
 	}
@@ -218,6 +219,10 @@ public class Model implements Comparator<Class> {
 
 	public int getMaxColor() {
 		return maxColor;
+	}
+	
+	public int getTablesSize() {
+		return tablesSize;
 	}
 
 }
