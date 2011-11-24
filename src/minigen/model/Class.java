@@ -11,7 +11,7 @@ import java.util.Map;
 import minigen.exception.SemanticException;
 import minigen.syntax3.node.Token;
 
-public class Class {
+public class Class implements Comparable<Class> {
 
 	private int classId;
 	private Integer color;
@@ -346,6 +346,18 @@ public class Class {
 
 	public void setDepth(int depth) {
 		this.depth = depth;
+	}
+
+	@Override
+	public int compareTo(Class o) {
+		if (o.isSubClassOf(this))
+			return -1;
+		if (this.isSubClassOf(o))
+			return 1;
+		if (o.getDepth() - this.getDepth() != 0)
+			return this.getDepth() - o.getDepth();
+		
+		return this.getName().compareTo(o.getName());
 	}
 
 }

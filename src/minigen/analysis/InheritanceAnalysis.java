@@ -1,4 +1,4 @@
-package minigen;
+package minigen.analysis;
 
 import java.util.ArrayList;
 import java.util.List;

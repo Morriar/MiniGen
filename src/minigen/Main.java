@@ -5,9 +5,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PushbackReader;
 
-import minigen.exception.InterpreterException;
+import minigen.analysis.ClassAnalysis;
+import minigen.analysis.FormalTypeAnalysis;
+import minigen.analysis.InheritanceAnalysis;
+import minigen.analysis.TypeAnalysis;
+import minigen.exception.InternalException;
 import minigen.exception.SemanticException;
 import minigen.model.Model;
+import minigen.model.Tables;
 import minigen.syntax3.lexer.Lexer;
 import minigen.syntax3.lexer.LexerException;
 import minigen.syntax3.node.Node;
@@ -46,20 +51,14 @@ public class Main {
 			// Check inheritance declarations
 			tree.apply(new InheritanceAnalysis(model));
 			
+			// Check type declarations
+			tree.apply(new TypeAnalysis(model));
+			
 			// Compute tables
-			TablesComputation table = new TablesComputation(model);
-			model.maxColor = table.maxColor;
-			
-			// Build type check tables in all classes
-			//model.buildAdaptations();
-			
-			//TODO colorize and build Border ?
+			new Tables(model);
 			
 			// Run interpreter
 			tree.apply(new Interpreter(model));
-
-			System.out.println("\nEXECUTION END SUCCESSFULLY");
-
 		} catch (IOException e) {
 			System.out.flush();
 			System.err.println("IO ERROR: while reading " + args[0] + ": "
@@ -77,7 +76,7 @@ public class Main {
 			System.out.flush();
 			System.err.println("SEMANTIC ERROR: " + e.getMessage());
 			return;
-		} catch (InterpreterException e) {
+		} catch (InternalException e) {
 			System.out.flush();
 			System.err.println("INTERPRETER ERROR: " + e.getMessage());
 			return;

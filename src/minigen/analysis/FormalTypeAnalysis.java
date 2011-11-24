@@ -1,4 +1,4 @@
-package minigen;
+package minigen.analysis;
 
 import minigen.model.Class;
 import minigen.model.FormalType;

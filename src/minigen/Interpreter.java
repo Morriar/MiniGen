@@ -1,6 +1,5 @@
 package minigen;
 
-import minigen.exception.SemanticException;
 import minigen.model.Adaptation;
 import minigen.model.Model;
 import minigen.model.Type;
@@ -26,9 +25,6 @@ public class Interpreter extends DepthFirstAdapter {
 		System.out.println("Classes found: " + model.getClasses().size());
 		System.out.println();
 
-		System.out.println("Max color: " + model.getMaxColor());
-		System.out.println();
-
 		// System.out.println("Inheritance relations found:");
 		// for (Class c : model.getClasses()) {
 		// System.out.println();
@@ -40,8 +36,8 @@ public class Interpreter extends DepthFirstAdapter {
 
 		System.out.println("Adaptations tables:");
 		for (minigen.model.Class c : model.getClasses()) {
-			System.out.println(" - For class " + c + "(" + c.getColor()
-					+ ") : " + c.toStringWithAdaptationsTable());
+			System.out.println(" - " + c + "(" + c.getColor() + ") : "
+					+ c.toStringWithAdaptationsTable());
 		}
 		System.out.println();
 
@@ -56,11 +52,12 @@ public class Interpreter extends DepthFirstAdapter {
 			}
 		}
 		double percent = nbNull * 100 / nbCases;
-		System.out.println("Taux de trous: " + nbNull + "/" + nbCases + " ("
-				+ percent + "%)");
+		System.out.println("Tables holes ratio: " + nbNull + "/" + nbCases
+				+ " (" + percent + "%)");
+		System.out.println();
 
 		System.out.println("-------------------------------");
-
+		System.out.println();
 	}
 
 	private Type computeType(Node node) {
@@ -78,7 +75,7 @@ public class Interpreter extends DepthFirstAdapter {
 	}
 
 	/*
-	 * Write result of type comparaison on console
+	 * Write result of type comparison on console
 	 */
 	@Override
 	public void caseAIsaInstr(AIsaInstr node) {
@@ -88,7 +85,7 @@ public class Interpreter extends DepthFirstAdapter {
 		Type rightType = computeType(node.getRight());
 
 		// Check isa and display results
-		System.out.println(" - " + leftType + " isa " + rightType + " => "
+		System.out.println("TYPECHECK: " + leftType + " isa " + rightType + " => "
 				+ leftType.isa(rightType, leftType));
 
 	}
@@ -97,25 +94,9 @@ public class Interpreter extends DepthFirstAdapter {
 	public void caseAType(AType node) {
 
 		String name = node.getName().getText().trim();
-		if (!model.containsClassDeclaration(name)) {
-			throw new SemanticException(node.getName(), "class " + name
-					+ " not declared");
-		}
 		this.currentType = new Type(name, model.getClassByName(node.getName(),
 				name));
-
 		visit(node.getGenericPart());
-
-		if (this.currentType.getIntro().getArity() != this.currentType
-				.getArity()) {
-			throw new SemanticException(node.getName(), this.currentType
-					.getIntro().getName()
-					+ " expects "
-					+ this.currentType.getIntro().getArity()
-					+ " parameter(s) ("
-					+ this.currentType.getArity()
-					+ " are provided)");
-		}
 	}
 
 	@Override
