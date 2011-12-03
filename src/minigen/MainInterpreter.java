@@ -9,9 +9,11 @@ import minigen.analysis.ClassAnalysis;
 import minigen.analysis.FormalTypeAnalysis;
 import minigen.analysis.InheritanceAnalysis;
 import minigen.analysis.TypeAnalysis;
+import minigen.analysis.VarAnalysis;
 import minigen.exception.InternalException;
 import minigen.exception.SemanticException;
 import minigen.model.Model;
+import minigen.model.Scope;
 import minigen.model.Tables;
 import minigen.syntax3.lexer.Lexer;
 import minigen.syntax3.lexer.LexerException;
@@ -19,7 +21,7 @@ import minigen.syntax3.node.Node;
 import minigen.syntax3.parser.Parser;
 import minigen.syntax3.parser.ParserException;
 
-public class Main {
+public class MainInterpreter {
 
 	public static void main(String[] args) {
 
@@ -54,11 +56,15 @@ public class Main {
 			// Check type declarations
 			tree.apply(new TypeAnalysis(model));
 			
+			// Check var declarations
+			Scope scope = new Scope();
+			tree.apply(new VarAnalysis(model, scope));
+			
 			// Compute tables
 			new Tables(model);
 			
 			// Run interpreter
-			tree.apply(new Interpreter(model));
+			tree.apply(new Interpreter(model, scope));
 		} catch (IOException e) {
 			System.out.flush();
 			System.err.println("IO ERROR: while reading " + args[0] + ": "
