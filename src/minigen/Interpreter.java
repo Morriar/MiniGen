@@ -2,22 +2,28 @@ package minigen;
 
 import minigen.model.Adaptation;
 import minigen.model.Model;
+import minigen.model.Scope;
 import minigen.model.Type;
 import minigen.syntax3.analysis.DepthFirstAdapter;
+import minigen.syntax3.node.AClassnameInstr;
 import minigen.syntax3.node.AGenericPart;
 import minigen.syntax3.node.AGenericTypes;
 import minigen.syntax3.node.AIsaInstr;
 import minigen.syntax3.node.AType;
+import minigen.syntax3.node.ATypeInstr;
+import minigen.syntax3.node.AVarExp;
 import minigen.syntax3.node.Node;
 import minigen.syntax3.node.PAdditionalTypes;
 
 public class Interpreter extends DepthFirstAdapter {
 
 	private Model model;
+	private Scope scope;
 	private Type currentType;
 
-	public Interpreter(Model model) {
+	public Interpreter(Model model, Scope scope) {
 		this.model = model;
+		this.scope = scope;
 
 		System.out.println("------- Statistics -------");
 		System.out.println();
@@ -81,18 +87,23 @@ public class Interpreter extends DepthFirstAdapter {
 	public void caseAIsaInstr(AIsaInstr node) {
 
 		// Compute types
-		Type leftType = computeType(node.getLeft());
-		Type rightType = computeType(node.getRight());
+		Type leftType = computeType(node.getExp());
+		Type rightType = computeType(node.getType());
 
 		// Check isa and display results
-		System.out.println("TYPECHECK: " + leftType + " isa " + rightType + " => "
+		System.out.println(leftType + " isa " + rightType + " => "
 				+ leftType.isa(rightType, leftType));
 
 	}
 
 	@Override
-	public void caseAType(AType node) {
+	public void caseAVarExp(AVarExp node) {
+		String name = node.getId().getText();
+		this.currentType = this.scope.getVar(node.getId(), name).getType();
+	}
 
+	@Override
+	public void caseAType(AType node) {
 		String name = node.getName().getText().trim();
 		this.currentType = new Type(name, model.getClassByName(node.getName(),
 				name));
@@ -119,6 +130,16 @@ public class Interpreter extends DepthFirstAdapter {
 		}
 
 		this.currentType = savedType;
+	}
+
+	@Override
+	public void caseATypeInstr(ATypeInstr node) {
+		System.out.println(computeType(node.getExp()));
+	}
+	
+	@Override
+	public void caseAClassnameInstr(AClassnameInstr node) {
+		System.out.println(computeType(node.getExp()).getIntro().getName());
 	}
 
 }

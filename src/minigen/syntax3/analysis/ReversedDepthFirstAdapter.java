@@ -481,18 +481,201 @@ public class ReversedDepthFirstAdapter extends AnalysisAdapter
     public void caseAIsaInstr(AIsaInstr node)
     {
         inAIsaInstr(node);
-        if(node.getRight() != null)
+        if(node.getType() != null)
         {
-            node.getRight().apply(this);
+            node.getType().apply(this);
         }
         if(node.getKisa() != null)
         {
             node.getKisa().apply(this);
         }
-        if(node.getLeft() != null)
+        if(node.getExp() != null)
         {
-            node.getLeft().apply(this);
+            node.getExp().apply(this);
         }
         outAIsaInstr(node);
+    }
+
+    public void inADeclInstr(ADeclInstr node)
+    {
+        defaultIn(node);
+    }
+
+    public void outADeclInstr(ADeclInstr node)
+    {
+        defaultOut(node);
+    }
+
+    @Override
+    public void caseADeclInstr(ADeclInstr node)
+    {
+        inADeclInstr(node);
+        if(node.getExp() != null)
+        {
+            node.getExp().apply(this);
+        }
+        if(node.getEquals() != null)
+        {
+            node.getEquals().apply(this);
+        }
+        if(node.getId() != null)
+        {
+            node.getId().apply(this);
+        }
+        if(node.getKvar() != null)
+        {
+            node.getKvar().apply(this);
+        }
+        outADeclInstr(node);
+    }
+
+    public void inAAssignInstr(AAssignInstr node)
+    {
+        defaultIn(node);
+    }
+
+    public void outAAssignInstr(AAssignInstr node)
+    {
+        defaultOut(node);
+    }
+
+    @Override
+    public void caseAAssignInstr(AAssignInstr node)
+    {
+        inAAssignInstr(node);
+        if(node.getExp() != null)
+        {
+            node.getExp().apply(this);
+        }
+        if(node.getEquals() != null)
+        {
+            node.getEquals().apply(this);
+        }
+        if(node.getId() != null)
+        {
+            node.getId().apply(this);
+        }
+        outAAssignInstr(node);
+    }
+
+    public void inANewInstr(ANewInstr node)
+    {
+        defaultIn(node);
+    }
+
+    public void outANewInstr(ANewInstr node)
+    {
+        defaultOut(node);
+    }
+
+    @Override
+    public void caseANewInstr(ANewInstr node)
+    {
+        inANewInstr(node);
+        if(node.getType() != null)
+        {
+            node.getType().apply(this);
+        }
+        if(node.getKnew() != null)
+        {
+            node.getKnew().apply(this);
+        }
+        outANewInstr(node);
+    }
+
+    public void inATypeInstr(ATypeInstr node)
+    {
+        defaultIn(node);
+    }
+
+    public void outATypeInstr(ATypeInstr node)
+    {
+        defaultOut(node);
+    }
+
+    @Override
+    public void caseATypeInstr(ATypeInstr node)
+    {
+        inATypeInstr(node);
+        if(node.getExp() != null)
+        {
+            node.getExp().apply(this);
+        }
+        if(node.getKtype() != null)
+        {
+            node.getKtype().apply(this);
+        }
+        outATypeInstr(node);
+    }
+
+    public void inAClassnameInstr(AClassnameInstr node)
+    {
+        defaultIn(node);
+    }
+
+    public void outAClassnameInstr(AClassnameInstr node)
+    {
+        defaultOut(node);
+    }
+
+    @Override
+    public void caseAClassnameInstr(AClassnameInstr node)
+    {
+        inAClassnameInstr(node);
+        if(node.getExp() != null)
+        {
+            node.getExp().apply(this);
+        }
+        if(node.getKclassname() != null)
+        {
+            node.getKclassname().apply(this);
+        }
+        outAClassnameInstr(node);
+    }
+
+    public void inANewExp(ANewExp node)
+    {
+        defaultIn(node);
+    }
+
+    public void outANewExp(ANewExp node)
+    {
+        defaultOut(node);
+    }
+
+    @Override
+    public void caseANewExp(ANewExp node)
+    {
+        inANewExp(node);
+        if(node.getType() != null)
+        {
+            node.getType().apply(this);
+        }
+        if(node.getKnew() != null)
+        {
+            node.getKnew().apply(this);
+        }
+        outANewExp(node);
+    }
+
+    public void inAVarExp(AVarExp node)
+    {
+        defaultIn(node);
+    }
+
+    public void outAVarExp(AVarExp node)
+    {
+        defaultOut(node);
+    }
+
+    @Override
+    public void caseAVarExp(AVarExp node)
+    {
+        inAVarExp(node);
+        if(node.getId() != null)
+        {
+            node.getId().apply(this);
+        }
+        outAVarExp(node);
     }
 }

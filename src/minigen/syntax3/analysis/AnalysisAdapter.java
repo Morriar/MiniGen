@@ -149,7 +149,47 @@ public class AnalysisAdapter implements Analysis
         defaultCase(node);
     }
 
+    public void caseADeclInstr(ADeclInstr node)
+    {
+        defaultCase(node);
+    }
+
+    public void caseAAssignInstr(AAssignInstr node)
+    {
+        defaultCase(node);
+    }
+
+    public void caseANewInstr(ANewInstr node)
+    {
+        defaultCase(node);
+    }
+
+    public void caseATypeInstr(ATypeInstr node)
+    {
+        defaultCase(node);
+    }
+
+    public void caseAClassnameInstr(AClassnameInstr node)
+    {
+        defaultCase(node);
+    }
+
+    public void caseANewExp(ANewExp node)
+    {
+        defaultCase(node);
+    }
+
+    public void caseAVarExp(AVarExp node)
+    {
+        defaultCase(node);
+    }
+
     public void caseTComma(TComma node)
+    {
+        defaultCase(node);
+    }
+
+    public void caseTEquals(TEquals node)
     {
         defaultCase(node);
     }
@@ -179,6 +219,16 @@ public class AnalysisAdapter implements Analysis
         defaultCase(node);
     }
 
+    public void caseTKtype(TKtype node)
+    {
+        defaultCase(node);
+    }
+
+    public void caseTKclassname(TKclassname node)
+    {
+        defaultCase(node);
+    }
+
     public void caseTKsuper(TKsuper node)
     {
         defaultCase(node);
@@ -189,7 +239,17 @@ public class AnalysisAdapter implements Analysis
         defaultCase(node);
     }
 
+    public void caseTKvar(TKvar node)
+    {
+        defaultCase(node);
+    }
+
     public void caseTName(TName node)
+    {
+        defaultCase(node);
+    }
+
+    public void caseTId(TId node)
     {
         defaultCase(node);
     }

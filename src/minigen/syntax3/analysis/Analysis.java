@@ -28,16 +28,28 @@ public interface Analysis extends Switch
     void caseASuperGenericTypes(ASuperGenericTypes node);
     void caseASuperAdditionalTypes(ASuperAdditionalTypes node);
     void caseAIsaInstr(AIsaInstr node);
+    void caseADeclInstr(ADeclInstr node);
+    void caseAAssignInstr(AAssignInstr node);
+    void caseANewInstr(ANewInstr node);
+    void caseATypeInstr(ATypeInstr node);
+    void caseAClassnameInstr(AClassnameInstr node);
+    void caseANewExp(ANewExp node);
+    void caseAVarExp(AVarExp node);
 
     void caseTComma(TComma node);
+    void caseTEquals(TEquals node);
     void caseTLb(TLb node);
     void caseTRb(TRb node);
     void caseTKend(TKend node);
     void caseTKisa(TKisa node);
     void caseTKclass(TKclass node);
+    void caseTKtype(TKtype node);
+    void caseTKclassname(TKclassname node);
     void caseTKsuper(TKsuper node);
     void caseTKnew(TKnew node);
+    void caseTKvar(TKvar node);
     void caseTName(TName node);
+    void caseTId(TId node);
     void caseTBlanks(TBlanks node);
     void caseTComment(TComment node);
     void caseEOF(EOF node);

@@ -5,26 +5,22 @@ package minigen.syntax3.node;
 import minigen.syntax3.analysis.*;
 
 @SuppressWarnings("nls")
-public final class AIsaInstr extends PInstr
+public final class ANewInstr extends PInstr
 {
-    private PExp _exp_;
-    private TKisa _kisa_;
+    private TKnew _knew_;
     private PType _type_;
 
-    public AIsaInstr()
+    public ANewInstr()
     {
         // Constructor
     }
 
-    public AIsaInstr(
-        @SuppressWarnings("hiding") PExp _exp_,
-        @SuppressWarnings("hiding") TKisa _kisa_,
+    public ANewInstr(
+        @SuppressWarnings("hiding") TKnew _knew_,
         @SuppressWarnings("hiding") PType _type_)
     {
         // Constructor
-        setExp(_exp_);
-
-        setKisa(_kisa_);
+        setKnew(_knew_);
 
         setType(_type_);
 
@@ -33,27 +29,26 @@ public final class AIsaInstr extends PInstr
     @Override
     public Object clone()
     {
-        return new AIsaInstr(
-            cloneNode(this._exp_),
-            cloneNode(this._kisa_),
+        return new ANewInstr(
+            cloneNode(this._knew_),
             cloneNode(this._type_));
     }
 
     public void apply(Switch sw)
     {
-        ((Analysis) sw).caseAIsaInstr(this);
+        ((Analysis) sw).caseANewInstr(this);
     }
 
-    public PExp getExp()
+    public TKnew getKnew()
     {
-        return this._exp_;
+        return this._knew_;
     }
 
-    public void setExp(PExp node)
+    public void setKnew(TKnew node)
     {
-        if(this._exp_ != null)
+        if(this._knew_ != null)
         {
-            this._exp_.parent(null);
+            this._knew_.parent(null);
         }
 
         if(node != null)
@@ -66,32 +61,7 @@ public final class AIsaInstr extends PInstr
             node.parent(this);
         }
 
-        this._exp_ = node;
-    }
-
-    public TKisa getKisa()
-    {
-        return this._kisa_;
-    }
-
-    public void setKisa(TKisa node)
-    {
-        if(this._kisa_ != null)
-        {
-            this._kisa_.parent(null);
-        }
-
-        if(node != null)
-        {
-            if(node.parent() != null)
-            {
-                node.parent().removeChild(node);
-            }
-
-            node.parent(this);
-        }
-
-        this._kisa_ = node;
+        this._knew_ = node;
     }
 
     public PType getType()
@@ -123,8 +93,7 @@ public final class AIsaInstr extends PInstr
     public String toString()
     {
         return ""
-            + toString(this._exp_)
-            + toString(this._kisa_)
+            + toString(this._knew_)
             + toString(this._type_);
     }
 
@@ -132,15 +101,9 @@ public final class AIsaInstr extends PInstr
     void removeChild(@SuppressWarnings("unused") Node child)
     {
         // Remove child
-        if(this._exp_ == child)
+        if(this._knew_ == child)
         {
-            this._exp_ = null;
-            return;
-        }
-
-        if(this._kisa_ == child)
-        {
-            this._kisa_ = null;
+            this._knew_ = null;
             return;
         }
 
@@ -157,15 +120,9 @@ public final class AIsaInstr extends PInstr
     void replaceChild(@SuppressWarnings("unused") Node oldChild, @SuppressWarnings("unused") Node newChild)
     {
         // Replace child
-        if(this._exp_ == oldChild)
+        if(this._knew_ == oldChild)
         {
-            setExp((PExp) newChild);
-            return;
-        }
-
-        if(this._kisa_ == oldChild)
-        {
-            setKisa((TKisa) newChild);
+            setKnew((TKnew) newChild);
             return;
         }
 

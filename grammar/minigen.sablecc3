@@ -20,6 +20,7 @@ Helpers
 Tokens
 
   comma = ',';
+  equals = '=';
 
   lb = '[';
   rb = ']';
@@ -27,10 +28,14 @@ Tokens
   kend = 'end';
   kisa = 'isa';
   kclass = 'class';
+  ktype = 'type';
+  kclassname = 'classname';
   ksuper = 'super';
   knew = 'new';
+  kvar = 'var';
 
   name = upper (letter | digit)*;
+  id = lower (letter | digit)*;
   
   blanks = blank+;
   comment = '#' not_eol*;
@@ -86,4 +91,14 @@ Productions
   	comma super_type;
   	
   instr =
-    {isa} [left]:type kisa [right]:type;
+    {isa} exp kisa type |
+    {decl} kvar id equals exp |
+    {assign} id equals exp |
+    {new} knew type |
+    {type} ktype exp |
+    {classname} kclassname exp |
+    {exec} kvar dot kexec;
+    
+  exp =
+  	{new} knew type |
+  	{var} id;

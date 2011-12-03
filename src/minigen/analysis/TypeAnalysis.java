@@ -6,7 +6,8 @@ import minigen.model.Type;
 import minigen.syntax3.analysis.DepthFirstAdapter;
 import minigen.syntax3.node.AGenericPart;
 import minigen.syntax3.node.AGenericTypes;
-import minigen.syntax3.node.AIsaInstr;
+import minigen.syntax3.node.ANewExp;
+import minigen.syntax3.node.ANewInstr;
 import minigen.syntax3.node.AType;
 import minigen.syntax3.node.Node;
 import minigen.syntax3.node.PAdditionalTypes;
@@ -34,13 +35,14 @@ public class TypeAnalysis extends DepthFirstAdapter {
 		}
 	}
 
-	/*
-	 * Write result of type comparaison on console
-	 */
 	@Override
-	public void caseAIsaInstr(AIsaInstr node) {
-		computeType(node.getLeft());
-		computeType(node.getRight());
+	public void caseANewExp(ANewExp node) {
+		computeType(node.getType());
+	}
+	
+	@Override
+	public void caseANewInstr(ANewInstr node) {
+		computeType(node.getType());
 	}
 
 	@Override
@@ -66,7 +68,7 @@ public class TypeAnalysis extends DepthFirstAdapter {
 					+ this.currentType.getArity()
 					+ " are provided)");
 		}
-		
+
 		// Register type in model
 		this.model.declareType(node, this.currentType);
 	}
