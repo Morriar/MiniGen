@@ -1,0 +1,9 @@
+class B super Object end
+class C super Object end
+class D super B, C end
+class Z super B end
+
+new D isa Object	# true
+new D isa C			# true
+new Z isa C			# false
+new Object isa B	# false

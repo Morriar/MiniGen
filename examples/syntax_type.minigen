@@ -1,0 +1,18 @@
+class Number end
+class Bool end
+class Int super Number end
+
+class A[T, U] end
+
+class B[V] super A[Object, V] end
+
+class C[X, Y, Z] super B[Z] end
+
+var a = new A[Bool, Bool]
+var b = new A[Object, Object]
+var c = a
+
+type a	# A[Bool, Bool]
+type b	# A[Object, Object]
+type c 	# A[Bool, Bool]
+type new Number # Number

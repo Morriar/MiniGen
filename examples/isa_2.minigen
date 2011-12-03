@@ -1,0 +1,22 @@
+class Number end
+class Int super Number end
+class Bool end
+
+class X[T] end
+class A[U] end
+class B[V] super A[X[V]] end
+class C[W] super B[X[W]] end
+class D super C[Int] end
+
+new Bool isa Int			# prints FALSE
+new B[Int] isa A[Int] 		# prints FALSE
+new B[Int] isa A[X[Int]] 	# prints TRUE
+new B[Int] isa A[X[Object]]	# prints TRUE
+new B[Int] isa A[X[Bool]]	# prints FALSE
+new C[Int] isa A[X[X[Int]]] # prints TRUE
+new C[Int] isa A[X[Int]] 	# prints FALSE
+
+new A[X[X[Int]]] isa A[X[X[Int]]] 	#prints TRUE
+new A[X[X[Int]]] isa A[X[X[Bool]]] 	#prints FALSE
+new A[X[X[Int]]] isa A[X[X[Number]]] #prints TRUE
+new B[X[X[Int]]] isa A[X[X[Int]]] 	#prints FALSE

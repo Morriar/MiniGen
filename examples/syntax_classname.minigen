@@ -8,7 +8,11 @@ class B[V] super A[Object, V] end
 
 class C[X, Y, Z] super B[Z] end
 
+var a = new A[Bool, Bool]
+var b = new A[Object, Object]
+var c = a
 
-
-A[Bool, Bool] isa A[Object, Object]
-A[Object, Object] isa A[Bool, Bool]
+classname a	# A
+classname b	# A
+classname c # A
+classname new Number # number

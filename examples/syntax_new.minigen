@@ -1,0 +1,17 @@
+class Number end
+class Bool end
+class Int super Number end
+
+class A[T, U] end
+
+class B[V] super A[Object, V] end
+
+class C[X, Y, Z] super B[Z] end
+
+var a = new A[Bool, Bool]
+var b = new A[Object, Object]
+var c = a
+
+a isa A[Object, Object] 		# true
+b isa Bool						# false
+new B[Int] isa A[Object, Int]	# true

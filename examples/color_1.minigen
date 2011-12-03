@@ -30,4 +30,4 @@ class ArraySet super Set end
 class HashSet super Set, HashCollection end
 
 
-HashSet isa SimpleCollection
+new HashSet isa SimpleCollection # true

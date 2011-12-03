@@ -1,0 +1,13 @@
+class Number end
+class Int super Number end
+class Bool end
+
+class A[E] end
+class B[E] super A[A[E]] end
+class C[E] super B[B[E]] end
+
+new C[Int] isa A[A[B[Number]]] 		# True
+new C[Number] isa A[A[B[Number]]] 	# True
+new C[Number] isa A[Object] 		# True
+new C[Number] isa A[A[B[Int]]] 		# False
+new C[Int] isa A[A[B[Int]]] 		# True

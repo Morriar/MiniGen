@@ -1,0 +1,10 @@
+class Number end
+class Int super Number end
+class Bool end
+
+class D[T] end
+class E[T] super D[T] end
+class F[T] super E[T], G[Bool] end
+class G[T] super D[T] end
+
+new F[Int] isa D[Bool] # prints TRUE

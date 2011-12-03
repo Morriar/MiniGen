@@ -1,0 +1,18 @@
+# For medium tests
+class Bool end
+class Int end
+
+class A[T, U] end
+class B[T, U] super A[Object, Object] end
+class C[T] super A[Bool, Int] end
+class D super C[Object] end
+
+# Must fail : type undeclared
+#Toto isa Bbb
+
+# Must fail : type undeclared
+#C[Toto] isa B[Int]
+
+# Must fail : generic arity
+#C isa A
+

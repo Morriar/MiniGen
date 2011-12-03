@@ -1,0 +1,12 @@
+class A[E] end
+class B[E, F] super A[F] end
+class C super B[Int, String] end
+
+class Int end
+class String end
+
+var b = new B[Int, A[String]]
+var c = new C
+
+b isa A[A[String]] # true
+c isa A[A[String]] # false
