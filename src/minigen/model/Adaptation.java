@@ -60,6 +60,10 @@ public class Adaptation {
 		}
 		return false;
 	}
+	
+	public String getName() {
+		return this.parent.getName();
+	}
 
 	@Override
 	public String toString() {

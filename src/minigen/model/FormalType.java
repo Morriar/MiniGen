@@ -4,7 +4,7 @@ package minigen.model;
 public class FormalType {
 
 	private String name;
-	private int position;
+	private Integer position;
 
 	public FormalType(String name, int position) {
 		super();
@@ -21,7 +21,7 @@ public class FormalType {
 		return name;
 	}
 
-	public int getPosition() {
+	public Integer getPosition() {
 		return position;
 	}
 	

@@ -136,11 +136,7 @@ public class Type {
 	public void addGenericType(Type type) {
 		this.genericTypes.add(type);
 	}
-
-	/*
-	 * Getters, setters
-	 */
-
+	
 	@Override
 	public String toString() {
 		String str = this.getName();
@@ -162,6 +158,27 @@ public class Type {
 			str += "*";
 		}
 
+		return str;
+	}
+
+	/*
+	 * Getters, setters
+	 */
+	
+	public String toSymbol() {
+		String str = this.getName();
+
+		int i = 0;
+		if (this.isGeneric()) {
+			str += "_";
+			for (Type type : genericTypes) {
+				str += type.toSymbol();
+				if (i < genericTypes.size() - 1) {
+					str += "-";
+				}
+				i++;
+			}
+		}
 		return str;
 	}
 
