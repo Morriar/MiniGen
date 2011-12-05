@@ -2,6 +2,7 @@
 
 package minigen.syntax3.node;
 
+import java.util.*;
 import minigen.syntax3.analysis.*;
 
 @SuppressWarnings("nls")
@@ -11,6 +12,7 @@ public final class AClassDecl extends PClassDecl
     private TName _name_;
     private PFormalDecls _formalDecls_;
     private PSuperDecls _superDecls_;
+    private final LinkedList<PInstr> _instrs_ = new LinkedList<PInstr>();
     private TKend _kend_;
 
     public AClassDecl()
@@ -23,6 +25,7 @@ public final class AClassDecl extends PClassDecl
         @SuppressWarnings("hiding") TName _name_,
         @SuppressWarnings("hiding") PFormalDecls _formalDecls_,
         @SuppressWarnings("hiding") PSuperDecls _superDecls_,
+        @SuppressWarnings("hiding") List<PInstr> _instrs_,
         @SuppressWarnings("hiding") TKend _kend_)
     {
         // Constructor
@@ -33,6 +36,8 @@ public final class AClassDecl extends PClassDecl
         setFormalDecls(_formalDecls_);
 
         setSuperDecls(_superDecls_);
+
+        setInstrs(_instrs_);
 
         setKend(_kend_);
 
@@ -46,6 +51,7 @@ public final class AClassDecl extends PClassDecl
             cloneNode(this._name_),
             cloneNode(this._formalDecls_),
             cloneNode(this._superDecls_),
+            cloneList(this._instrs_),
             cloneNode(this._kend_));
     }
 
@@ -154,6 +160,26 @@ public final class AClassDecl extends PClassDecl
         this._superDecls_ = node;
     }
 
+    public LinkedList<PInstr> getInstrs()
+    {
+        return this._instrs_;
+    }
+
+    public void setInstrs(List<PInstr> list)
+    {
+        this._instrs_.clear();
+        this._instrs_.addAll(list);
+        for(PInstr e : list)
+        {
+            if(e.parent() != null)
+            {
+                e.parent().removeChild(e);
+            }
+
+            e.parent(this);
+        }
+    }
+
     public TKend getKend()
     {
         return this._kend_;
@@ -187,6 +213,7 @@ public final class AClassDecl extends PClassDecl
             + toString(this._name_)
             + toString(this._formalDecls_)
             + toString(this._superDecls_)
+            + toString(this._instrs_)
             + toString(this._kend_);
     }
 
@@ -215,6 +242,11 @@ public final class AClassDecl extends PClassDecl
         if(this._superDecls_ == child)
         {
             this._superDecls_ = null;
+            return;
+        }
+
+        if(this._instrs_.remove(child))
+        {
             return;
         }
 
@@ -253,6 +285,24 @@ public final class AClassDecl extends PClassDecl
         {
             setSuperDecls((PSuperDecls) newChild);
             return;
+        }
+
+        for(ListIterator<PInstr> i = this._instrs_.listIterator(); i.hasNext();)
+        {
+            if(i.next() == oldChild)
+            {
+                if(newChild != null)
+                {
+                    i.set((PInstr) newChild);
+                    newChild.parent(this);
+                    oldChild.parent(null);
+                    return;
+                }
+
+                i.remove();
+                oldChild.parent(null);
+                return;
+            }
         }
 
         if(this._kend_ == oldChild)

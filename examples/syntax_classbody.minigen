@@ -1,0 +1,51 @@
+class Number end
+class Int super Number end
+
+class A
+	var a = new Int
+	type a
+	classname a
+	a isa Number # true
+end
+
+class B[E, F]
+	var a = new B[E, F]
+	type a
+	classname a
+	a isa E	
+	a isa B[E, F]
+	a isa B[Int, Int]
+	a isa B[Int, A]
+	
+	a = new B[C[E], F]
+	type a
+	classname a
+	a isa B[C[E], F]
+	a isa B[C[Number], F]
+	a isa B[C[A], F]
+end
+
+class C[E] end
+
+var a = new A
+a.exec()
+
+# prints Int
+# prints Int
+# prints true
+
+a = new B[Int, A]
+a.exec()
+
+# prints B[Int, A]
+# prints B
+# prints false
+# prints true
+# prints false
+# prints true
+
+# prints B[C[Int], A]
+# prints B
+# prints true
+# prints true
+# prints false

@@ -1,9 +1,11 @@
 package minigen.analysis;
 
 import minigen.exception.SemanticException;
+import minigen.model.Class;
 import minigen.model.Model;
 import minigen.model.Type;
 import minigen.syntax3.analysis.DepthFirstAdapter;
+import minigen.syntax3.node.AClassDecl;
 import minigen.syntax3.node.AGenericPart;
 import minigen.syntax3.node.AGenericTypes;
 import minigen.syntax3.node.ANewExp;
@@ -11,11 +13,13 @@ import minigen.syntax3.node.ANewInstr;
 import minigen.syntax3.node.AType;
 import minigen.syntax3.node.Node;
 import minigen.syntax3.node.PAdditionalTypes;
+import minigen.syntax3.node.PInstr;
 
 public class TypeAnalysis extends DepthFirstAdapter {
 
 	private Model model;
 	private Type currentType;
+	private Class currentClass;
 
 	public TypeAnalysis(Model model) {
 		this.model = model;
@@ -39,7 +43,7 @@ public class TypeAnalysis extends DepthFirstAdapter {
 	public void caseANewExp(ANewExp node) {
 		computeType(node.getType());
 	}
-	
+
 	@Override
 	public void caseANewInstr(ANewInstr node) {
 		computeType(node.getType());
@@ -50,6 +54,10 @@ public class TypeAnalysis extends DepthFirstAdapter {
 
 		String name = node.getName().getText().trim();
 		if (!model.containsClassDeclaration(name)) {
+			if (this.currentClass != null
+					&& this.currentClass.isFormalTypeDeclared(name)) {
+				return;
+			}
 			throw new SemanticException(node.getName(), "class " + name
 					+ " not declared");
 		}
@@ -93,6 +101,15 @@ public class TypeAnalysis extends DepthFirstAdapter {
 		}
 
 		this.currentType = savedType;
+	}
+
+	@Override
+	public void caseAClassDecl(AClassDecl node) {
+		this.currentClass = model.getClassByNode(node.getKclass(), node, "");
+		for (PInstr instr : node.getInstrs()) {
+			instr.apply(this);
+		}
+		this.currentClass = null;
 	}
 
 }

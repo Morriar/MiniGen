@@ -15,4 +15,4 @@ var c = a
 classname a	# A
 classname b	# A
 classname c # A
-classname new Number # number
+classname new Number # Number

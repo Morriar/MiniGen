@@ -1,11 +1,20 @@
 package minigen;
 
-import minigen.model.Adaptation;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import minigen.model.Class;
 import minigen.model.Model;
 import minigen.model.Scope;
 import minigen.model.Type;
+import minigen.model.Var;
 import minigen.syntax3.analysis.DepthFirstAdapter;
+import minigen.syntax3.node.AAssignInstr;
+import minigen.syntax3.node.AClassDecl;
 import minigen.syntax3.node.AClassnameInstr;
+import minigen.syntax3.node.ADeclInstr;
+import minigen.syntax3.node.AExecInstr;
 import minigen.syntax3.node.AGenericPart;
 import minigen.syntax3.node.AGenericTypes;
 import minigen.syntax3.node.AIsaInstr;
@@ -14,56 +23,23 @@ import minigen.syntax3.node.ATypeInstr;
 import minigen.syntax3.node.AVarExp;
 import minigen.syntax3.node.Node;
 import minigen.syntax3.node.PAdditionalTypes;
+import minigen.syntax3.node.PInstr;
 
 public class Interpreter extends DepthFirstAdapter {
 
 	private Model model;
-	private Scope scope;
+	private Scope currentScope;
 	private Type currentType;
+	private Class currentClass;
+	private Type currentInstanceType;
+	private HashMap<Class, Scope> classScopes;
+	private HashMap<Class, List<PInstr>> instrsByClasses;
 
-	public Interpreter(Model model, Scope scope) {
+	public Interpreter(Model model) {
 		this.model = model;
-		this.scope = scope;
-
-		System.out.println("------- Statistics -------");
-		System.out.println();
-
-		System.out.println("Classes found: " + model.getClasses().size());
-		System.out.println();
-
-		// System.out.println("Inheritance relations found:");
-		// for (Class c : model.getClasses()) {
-		// System.out.println();
-		// System.out.println(" - class " + c.toStringWithParents() + " get " +
-		// c.getSubClasses().size() + " subclasses (depth : "+ c.getDepth()
-		// +")");
-		// }
-		// System.out.println();
-
-		System.out.println("Adaptations tables:");
-		for (minigen.model.Class c : model.getClasses()) {
-			System.out.println(" - " + c + "(" + c.getColor() + ") : "
-					+ c.toStringWithAdaptationsTable());
-		}
-		System.out.println();
-
-		int nbCases = 0;
-		int nbNull = 0;
-		for (minigen.model.Class c : model.getClasses()) {
-			nbCases += c.getAdaptationsTable().length;
-			for (Adaptation a : c.getAdaptationsTable()) {
-				if (a == null) {
-					nbNull++;
-				}
-			}
-		}
-		double percent = nbNull * 100 / nbCases;
-		System.out.println("Tables holes ratio: " + nbNull + "/" + nbCases
-				+ " (" + percent + "%)");
-		System.out.println();
-
-		System.out.println("-------------------------------");
-		System.out.println();
+		this.currentScope = new Scope();
+		this.classScopes = new HashMap<Class, Scope>();
+		this.instrsByClasses = new HashMap<Class, List<PInstr>>();
 	}
 
 	private Type computeType(Node node) {
@@ -95,19 +71,37 @@ public class Interpreter extends DepthFirstAdapter {
 				+ leftType.isa(rightType, leftType));
 
 	}
-
+	
 	@Override
-	public void caseAVarExp(AVarExp node) {
-		String name = node.getId().getText();
-		this.currentType = this.scope.getVar(node.getId(), name).getType();
+	public void caseAClassDecl(AClassDecl node) {
+		Class currentClass = model.getClassByNode(node.getKclass(), node, "");
+		this.classScopes.put(currentClass, new Scope());
+		List<PInstr> instrs = new ArrayList<PInstr>();
+		for (PInstr instr : node.getInstrs()) {
+			instrs.add(instr);
+		}
+		this.instrsByClasses.put(currentClass, instrs);
 	}
-
+	
 	@Override
 	public void caseAType(AType node) {
 		String name = node.getName().getText().trim();
-		this.currentType = new Type(name, model.getClassByName(node.getName(),
-				name));
-		visit(node.getGenericPart());
+		
+		if(this.currentClass == null) {
+			this.currentType = new Type(name, model.getClassByName(node.getName(),
+					name));
+			visit(node.getGenericPart());
+		} else {
+			if(this.currentClass.isFormalTypeDeclared(name)) {
+				Integer ftPos = this.currentClass.getFormalType(name).getPosition();
+				this.currentType = this.currentInstanceType.getGenericTypes().get(ftPos);
+				visit(node.getGenericPart());
+			} else {
+				this.currentType = new Type(name, model.getClassByName(node.getName(),
+						name));
+				visit(node.getGenericPart());
+			}
+		}
 	}
 
 	@Override
@@ -131,6 +125,20 @@ public class Interpreter extends DepthFirstAdapter {
 
 		this.currentType = savedType;
 	}
+	
+	@Override
+	public void caseADeclInstr(ADeclInstr node) {
+		String name = node.getId().getText();
+		Type type = computeType(node.getExp());
+		this.currentScope.declareVar(node.getKvar(), name, type);
+	}
+	
+	@Override
+	public void caseAAssignInstr(AAssignInstr node) {
+		String name = node.getId().getText();
+		Var var = this.currentScope.getVar(node.getId(), name);
+		var.setType(computeType(node.getExp()));
+	}
 
 	@Override
 	public void caseATypeInstr(ATypeInstr node) {
@@ -138,8 +146,30 @@ public class Interpreter extends DepthFirstAdapter {
 	}
 	
 	@Override
+	public void caseAVarExp(AVarExp node) {
+		String name = node.getId().getText();
+		this.currentType = this.currentScope.getVar(node.getId(), name)
+				.getType();
+	}
+	
+	@Override
 	public void caseAClassnameInstr(AClassnameInstr node) {
 		System.out.println(computeType(node.getExp()).getIntro().getName());
+	}
+	
+	@Override
+	public void caseAExecInstr(AExecInstr node) {
+		Var var = this.currentScope.getVar(node.getId(), node.getId().getText());
+		this.currentClass = var.getType().getIntro();
+		this.currentInstanceType = var.getType();
+		Scope savedScope = this.currentScope;
+		this.currentScope = this.classScopes.get(currentClass);
+		for(PInstr instr: this.instrsByClasses.get(currentClass)) {
+			instr.apply(this);
+		}
+		this.currentInstanceType = null;
+		this.currentClass = null;
+		this.currentScope = savedScope;
 	}
 
 }

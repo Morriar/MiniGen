@@ -9,11 +9,9 @@ import minigen.analysis.ClassAnalysis;
 import minigen.analysis.FormalTypeAnalysis;
 import minigen.analysis.InheritanceAnalysis;
 import minigen.analysis.TypeAnalysis;
-import minigen.analysis.VarAnalysis;
 import minigen.exception.InternalException;
 import minigen.exception.SemanticException;
 import minigen.model.Model;
-import minigen.model.Scope;
 import minigen.model.Tables;
 import minigen.syntax3.lexer.Lexer;
 import minigen.syntax3.lexer.LexerException;
@@ -52,19 +50,15 @@ public class MainInterpreter {
 
 			// Check inheritance declarations
 			tree.apply(new InheritanceAnalysis(model));
-			
+
 			// Check type declarations
 			tree.apply(new TypeAnalysis(model));
-			
-			// Check var declarations
-			Scope scope = new Scope();
-			tree.apply(new VarAnalysis(model, scope));
-			
+
 			// Compute tables
 			new Tables(model);
-			
+
 			// Run interpreter
-			tree.apply(new Interpreter(model, scope));
+			tree.apply(new Interpreter(model));
 		} catch (IOException e) {
 			System.out.flush();
 			System.err.println("IO ERROR: while reading " + args[0] + ": "

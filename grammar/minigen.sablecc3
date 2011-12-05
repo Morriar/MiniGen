@@ -19,6 +19,7 @@ Helpers
 
 Tokens
 
+  dot = '.';
   comma = ',';
   equals = '=';
 
@@ -33,6 +34,7 @@ Tokens
   ksuper = 'super';
   knew = 'new';
   kvar = 'var';
+  kexec = 'exec()';
 
   name = upper (letter | digit)*;
   id = lower (letter | digit)*;
@@ -49,7 +51,7 @@ Productions
     [classes]: class_decl* [instrs]:instr*;
     
   class_decl = 
-  	kclass name formal_decls? super_decls? kend;
+  	kclass name formal_decls? super_decls? [instrs]:instr* kend;
   	
   formal_decls =
   	lb formal_decl+ rb;
@@ -97,7 +99,7 @@ Productions
     {new} knew type |
     {type} ktype exp |
     {classname} kclassname exp |
-    {exec} kvar dot kexec;
+    {exec} id dot kexec;
     
   exp =
   	{new} knew type |

@@ -33,9 +33,11 @@ public interface Analysis extends Switch
     void caseANewInstr(ANewInstr node);
     void caseATypeInstr(ATypeInstr node);
     void caseAClassnameInstr(AClassnameInstr node);
+    void caseAExecInstr(AExecInstr node);
     void caseANewExp(ANewExp node);
     void caseAVarExp(AVarExp node);
 
+    void caseTDot(TDot node);
     void caseTComma(TComma node);
     void caseTEquals(TEquals node);
     void caseTLb(TLb node);
@@ -48,6 +50,7 @@ public interface Analysis extends Switch
     void caseTKsuper(TKsuper node);
     void caseTKnew(TKnew node);
     void caseTKvar(TKvar node);
+    void caseTKexec(TKexec node);
     void caseTName(TName node);
     void caseTId(TId node);
     void caseTBlanks(TBlanks node);

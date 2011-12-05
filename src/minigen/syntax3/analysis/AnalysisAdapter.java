@@ -174,12 +174,22 @@ public class AnalysisAdapter implements Analysis
         defaultCase(node);
     }
 
+    public void caseAExecInstr(AExecInstr node)
+    {
+        defaultCase(node);
+    }
+
     public void caseANewExp(ANewExp node)
     {
         defaultCase(node);
     }
 
     public void caseAVarExp(AVarExp node)
+    {
+        defaultCase(node);
+    }
+
+    public void caseTDot(TDot node)
     {
         defaultCase(node);
     }
@@ -240,6 +250,11 @@ public class AnalysisAdapter implements Analysis
     }
 
     public void caseTKvar(TKvar node)
+    {
+        defaultCase(node);
+    }
+
+    public void caseTKexec(TKexec node)
     {
         defaultCase(node);
     }

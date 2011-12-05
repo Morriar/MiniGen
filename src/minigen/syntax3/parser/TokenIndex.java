@@ -10,92 +10,104 @@ class TokenIndex extends AnalysisAdapter
     int index;
 
     @Override
-    public void caseTComma(@SuppressWarnings("unused") TComma node)
+    public void caseTDot(@SuppressWarnings("unused") TDot node)
     {
         this.index = 0;
     }
 
     @Override
-    public void caseTEquals(@SuppressWarnings("unused") TEquals node)
+    public void caseTComma(@SuppressWarnings("unused") TComma node)
     {
         this.index = 1;
     }
 
     @Override
-    public void caseTLb(@SuppressWarnings("unused") TLb node)
+    public void caseTEquals(@SuppressWarnings("unused") TEquals node)
     {
         this.index = 2;
     }
 
     @Override
-    public void caseTRb(@SuppressWarnings("unused") TRb node)
+    public void caseTLb(@SuppressWarnings("unused") TLb node)
     {
         this.index = 3;
     }
 
     @Override
-    public void caseTKend(@SuppressWarnings("unused") TKend node)
+    public void caseTRb(@SuppressWarnings("unused") TRb node)
     {
         this.index = 4;
     }
 
     @Override
-    public void caseTKisa(@SuppressWarnings("unused") TKisa node)
+    public void caseTKend(@SuppressWarnings("unused") TKend node)
     {
         this.index = 5;
     }
 
     @Override
-    public void caseTKclass(@SuppressWarnings("unused") TKclass node)
+    public void caseTKisa(@SuppressWarnings("unused") TKisa node)
     {
         this.index = 6;
     }
 
     @Override
-    public void caseTKtype(@SuppressWarnings("unused") TKtype node)
+    public void caseTKclass(@SuppressWarnings("unused") TKclass node)
     {
         this.index = 7;
     }
 
     @Override
-    public void caseTKclassname(@SuppressWarnings("unused") TKclassname node)
+    public void caseTKtype(@SuppressWarnings("unused") TKtype node)
     {
         this.index = 8;
     }
 
     @Override
-    public void caseTKsuper(@SuppressWarnings("unused") TKsuper node)
+    public void caseTKclassname(@SuppressWarnings("unused") TKclassname node)
     {
         this.index = 9;
     }
 
     @Override
-    public void caseTKnew(@SuppressWarnings("unused") TKnew node)
+    public void caseTKsuper(@SuppressWarnings("unused") TKsuper node)
     {
         this.index = 10;
     }
 
     @Override
-    public void caseTKvar(@SuppressWarnings("unused") TKvar node)
+    public void caseTKnew(@SuppressWarnings("unused") TKnew node)
     {
         this.index = 11;
     }
 
     @Override
-    public void caseTName(@SuppressWarnings("unused") TName node)
+    public void caseTKvar(@SuppressWarnings("unused") TKvar node)
     {
         this.index = 12;
     }
 
     @Override
-    public void caseTId(@SuppressWarnings("unused") TId node)
+    public void caseTKexec(@SuppressWarnings("unused") TKexec node)
     {
         this.index = 13;
     }
 
     @Override
-    public void caseEOF(@SuppressWarnings("unused") EOF node)
+    public void caseTName(@SuppressWarnings("unused") TName node)
     {
         this.index = 14;
+    }
+
+    @Override
+    public void caseTId(@SuppressWarnings("unused") TId node)
+    {
+        this.index = 15;
+    }
+
+    @Override
+    public void caseEOF(@SuppressWarnings("unused") EOF node)
+    {
+        this.index = 16;
     }
 }

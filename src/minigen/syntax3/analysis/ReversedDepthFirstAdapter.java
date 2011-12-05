@@ -87,6 +87,14 @@ public class ReversedDepthFirstAdapter extends AnalysisAdapter
         {
             node.getKend().apply(this);
         }
+        {
+            List<PInstr> copy = new ArrayList<PInstr>(node.getInstrs());
+            Collections.reverse(copy);
+            for(PInstr e : copy)
+            {
+                e.apply(this);
+            }
+        }
         if(node.getSuperDecls() != null)
         {
             node.getSuperDecls().apply(this);
@@ -631,6 +639,35 @@ public class ReversedDepthFirstAdapter extends AnalysisAdapter
             node.getKclassname().apply(this);
         }
         outAClassnameInstr(node);
+    }
+
+    public void inAExecInstr(AExecInstr node)
+    {
+        defaultIn(node);
+    }
+
+    public void outAExecInstr(AExecInstr node)
+    {
+        defaultOut(node);
+    }
+
+    @Override
+    public void caseAExecInstr(AExecInstr node)
+    {
+        inAExecInstr(node);
+        if(node.getKexec() != null)
+        {
+            node.getKexec().apply(this);
+        }
+        if(node.getDot() != null)
+        {
+            node.getDot().apply(this);
+        }
+        if(node.getId() != null)
+        {
+            node.getId().apply(this);
+        }
+        outAExecInstr(node);
     }
 
     public void inANewExp(ANewExp node)

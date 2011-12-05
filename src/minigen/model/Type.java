@@ -170,11 +170,11 @@ public class Type {
 
 		int i = 0;
 		if (this.isGeneric()) {
-			str += "_";
+			str += "__";
 			for (Type type : genericTypes) {
 				str += type.toSymbol();
 				if (i < genericTypes.size() - 1) {
-					str += "-";
+					str += "_";
 				}
 				i++;
 			}

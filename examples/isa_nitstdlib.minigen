@@ -82,7 +82,7 @@ class Sys super Object end
 
 # Tests
 
-new Int isa Discrete 	# prints TRUE
+new Int isa Discrete 							# prints TRUE
 new AbstractString isa AbstractArrayRead[Char] 	# prints TRUE
 new AbstractString isa MapRead[Int, Char] 		# prints TRUE
 new HashSet[Int] isa ArraySet[Int] 				# prints FALSE
