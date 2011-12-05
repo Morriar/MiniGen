@@ -3,8 +3,11 @@ package minigen.icode;
 import minigen.icode.ICode.Arg;
 import minigen.icode.ICode.Class;
 import minigen.icode.ICode.ClassElement;
+import minigen.icode.ICode.ClassInit;
 import minigen.icode.ICode.ClassTable;
 import minigen.icode.ICode.ClassnameStatement;
+import minigen.icode.ICode.ExecStatement;
+import minigen.icode.ICode.Function;
 import minigen.icode.ICode.InitStatement;
 import minigen.icode.ICode.IsaStatement;
 import minigen.icode.ICode.ObjectTable;
@@ -12,7 +15,9 @@ import minigen.icode.ICode.Program;
 import minigen.icode.ICode.Statement;
 import minigen.icode.ICode.Symbol;
 import minigen.icode.ICode.Type;
+import minigen.icode.ICode.TypeInitStatement;
 import minigen.icode.ICode.TypeStatement;
+import minigen.icode.ICode.TypeSymbol;
 import minigen.icode.ICode.TypeTable;
 
 public class ICodeStubVisitor implements ICode.ICodeVisitor {
@@ -71,5 +76,25 @@ public class ICodeStubVisitor implements ICode.ICodeVisitor {
 
 	@Override
 	public void visit(ClassElement element) {
+	}
+
+	@Override
+	public void visit(Function fct) {
+	}
+
+	@Override
+	public void visit(ExecStatement stmt) {
+	}
+
+	@Override
+	public void visit(ClassInit stmt) {
+	}
+
+	@Override
+	public void visit(TypeInitStatement stmt) {
+	}
+
+	@Override
+	public void visit(TypeSymbol symbol) {
 	}
 }

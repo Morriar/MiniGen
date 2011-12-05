@@ -11,11 +11,9 @@ import minigen.analysis.ClassAnalysis;
 import minigen.analysis.FormalTypeAnalysis;
 import minigen.analysis.InheritanceAnalysis;
 import minigen.analysis.TypeAnalysis;
-import minigen.analysis.VarAnalysis;
 import minigen.exception.InternalException;
 import minigen.exception.SemanticException;
 import minigen.model.Model;
-import minigen.model.Scope;
 import minigen.model.Tables;
 import minigen.syntax3.lexer.Lexer;
 import minigen.syntax3.lexer.LexerException;
@@ -54,26 +52,22 @@ public class MainCompiler {
 
 			// Check inheritance declarations
 			tree.apply(new InheritanceAnalysis(model));
-			
+
 			// Check type declarations
 			tree.apply(new TypeAnalysis(model));
-			
-			// Check var declarations
-			Scope scope = new Scope();
-			tree.apply(new VarAnalysis(model, scope));
-			
+
 			// Compute tables
 			new Tables(model);
-			
+
 			// Prepare out buffer
 			File file = new File("./src/Main.java");
 			FileWriter out = new FileWriter(file);
-			
+
 			// Run interpreter
-			tree.apply(new Compiler(model, scope, out));
-			
+			tree.apply(new Compiler(model, out));
+
 			out.close();
-			
+
 		} catch (IOException e) {
 			System.out.flush();
 			System.err.println("IO ERROR: while reading " + args[0] + ": "

@@ -6,8 +6,11 @@ import java.io.IOException;
 import minigen.icode.ICode.Arg;
 import minigen.icode.ICode.Class;
 import minigen.icode.ICode.ClassElement;
+import minigen.icode.ICode.ClassInit;
 import minigen.icode.ICode.ClassTable;
 import minigen.icode.ICode.ClassnameStatement;
+import minigen.icode.ICode.ExecStatement;
+import minigen.icode.ICode.Function;
 import minigen.icode.ICode.InitStatement;
 import minigen.icode.ICode.IsaStatement;
 import minigen.icode.ICode.ObjectTable;
@@ -15,7 +18,9 @@ import minigen.icode.ICode.Program;
 import minigen.icode.ICode.Statement;
 import minigen.icode.ICode.Symbol;
 import minigen.icode.ICode.Type;
+import minigen.icode.ICode.TypeInitStatement;
 import minigen.icode.ICode.TypeStatement;
+import minigen.icode.ICode.TypeSymbol;
 import minigen.icode.ICode.TypeTable;
 
 public class ICodeCompiler extends ICodeStubVisitor {
@@ -30,6 +35,8 @@ public class ICodeCompiler extends ICodeStubVisitor {
 	public void visit(Program program) {
 		println("import java.util.ArrayList;");
 		println("import java.util.List;");
+		println("import java.util.Map;");
+		println("import java.util.HashMap;");
 		println();
 
 		println("public class Main {");
@@ -41,45 +48,27 @@ public class ICodeCompiler extends ICodeStubVisitor {
 			cls.accept(this);
 		}
 
-		println("public static void main(String[] args) {");
-		indent();
-
 		// Table initialisation
-
 		println();
 		println("/* Inits Classes */");
-		println();
-		for (Statement init : program.getInitClasses()) {
+		for (ClassInit init : program.getInitClasses()) {
 			init.accept(this);
+		}
+		println();
+
+		// Type storage
+		println();
+		println("public static Map<String, TypeTable> types = new HashMap<String, TypeTable>(); ");
+		println();
+
+		// Execs
+		for (Function fct : program.getFcts()) {
+			fct.accept(this);
 		}
 
-		println();
-		println("/* Inits Adapts */");
-		println();
-		for (Statement init : program.getInitAdapts()) {
-			init.accept(this);
-		}
-
-		println();
-		println("/* Inits Types */");
-		println();
-		for (Statement init : program.getInitTypes()) {
-			init.accept(this);
-		}
-
-		println();
-		println("/* Inits Objs */");
-		println();
-		for (Statement init : program.getInitObjs()) {
-			init.accept(this);
-		}
-
-		println();
-		println("/* Inits Elems */");
-		println();
-		for (Statement init : program.getInitElems()) {
-			init.accept(this);
-		}
+		// Main method
+		println("public static void main(String[] args) {");
+		indent();
 
 		// Statements
 		println();
@@ -126,6 +115,28 @@ public class ICodeCompiler extends ICodeStubVisitor {
 	}
 
 	@Override
+	public void visit(ClassInit stmt) {
+		printIndent();
+		print("public static ");
+		stmt.getType().accept(this);
+		print(" ");
+		stmt.getName().accept(this);
+		print(" = new ");
+		stmt.getType().accept(this);
+		print("(");
+
+		for (int i = 0; i < stmt.getArgs().size(); i++) {
+			stmt.getArgs().get(i).accept(this);
+			if (i < stmt.getArgs().size() - 1) {
+				print(", ");
+			}
+		}
+
+		print(");");
+		println();
+	}
+
+	@Override
 	public void visit(InitStatement stmt) {
 		printIndent();
 		stmt.getType().accept(this);
@@ -147,13 +158,62 @@ public class ICodeCompiler extends ICodeStubVisitor {
 	}
 
 	@Override
+	public void visit(TypeInitStatement stmt) {
+		printIndent();
+		print("TypeTable ");
+		stmt.getName().accept(this);
+		print(" = new TypeTable(");
+
+		for (int i = 0; i < stmt.getArgs().size(); i++) {
+			stmt.getArgs().get(i).accept(this);
+			if (i < stmt.getArgs().size() - 1) {
+				print(", ");
+			}
+		}
+
+		print(");");
+		println();
+
+		printIndent();
+		print("types.put(\"");
+		stmt.getName().accept(this);
+		print("\", ");
+		stmt.getName().accept(this);
+		print(");");
+		println();
+	}
+
+	@Override
+	public void visit(TypeSymbol symbol) {
+		print("types.get(\"" + symbol.toString() + "\")");
+	}
+
+	@Override
+	public void visit(Function fct) {
+		printIndent();
+		print("public static void ");
+		fct.getName().accept(this);
+		print("_exec(ObjectTable rec) {");
+		println();
+		indent();
+
+		for (Statement stmt : fct.getStmts()) {
+			stmt.accept(this);
+		}
+
+		unindent();
+		println("}");
+		println();
+	}
+
+	@Override
 	public void visit(ClassElement element) {
 		printIndent();
 		element.getId().accept(this);
 		print(".");
 		element.getField().accept(this);
 		print(".add(");
-		print(element.getValue());
+		element.getValue().accept(this);
 		print(");");
 		println();
 	}
@@ -197,7 +257,7 @@ public class ICodeCompiler extends ICodeStubVisitor {
 
 	@Override
 	public void visit(Arg arg) {
-		print(arg.getArg());
+		arg.getArg().accept(this);
 	}
 
 	@Override
@@ -219,6 +279,16 @@ public class ICodeCompiler extends ICodeStubVisitor {
 		println("}");
 		unindent();
 		println("}");
+	}
+
+	@Override
+	public void visit(ExecStatement stmt) {
+		printIndent();
+		stmt.getId().accept(this);
+		print("_exec(");
+		stmt.getRec().accept(this);
+		print(");");
+		println();
 	}
 
 	@Override
@@ -284,6 +354,16 @@ public class ICodeCompiler extends ICodeStubVisitor {
 		unindent();
 		println("}");
 		println();
+
+		println("public TypeTable(TypeTable type) {");
+		indent();
+		println("this.cls = type.cls;");
+		println("this.index = type.index;");
+		println("this.subTypes = type.subTypes;");
+		unindent();
+		println("}");
+		println();
+
 		println("public String getType() {");
 		indent();
 		println("String typeStr = this.cls.name;");
@@ -463,6 +543,3 @@ public class ICodeCompiler extends ICodeStubVisitor {
 	}
 
 }
-
-// TODO ajouter les blocs dans les classes avec .exec()
-// TODO initialiser objet avec type formel depuis les .exec();

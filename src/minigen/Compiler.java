@@ -2,12 +2,19 @@ package minigen;
 
 import java.io.FileWriter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import minigen.icode.ICode.ClassElement;
+import minigen.icode.ICode.ClassInit;
+import minigen.icode.ICode.ExecStatement;
+import minigen.icode.ICode.Function;
 import minigen.icode.ICode.InitStatement;
 import minigen.icode.ICode.Program;
+import minigen.icode.ICode.Statement;
 import minigen.icode.ICode.Symbol;
+import minigen.icode.ICode.TypeInitStatement;
+import minigen.icode.ICode.TypeSymbol;
 import minigen.icode.ICodeCompiler;
 import minigen.icode.ICodeFactory;
 import minigen.icode.TypeTag;
@@ -22,6 +29,9 @@ import minigen.syntax3.node.AAssignInstr;
 import minigen.syntax3.node.AClassDecl;
 import minigen.syntax3.node.AClassnameInstr;
 import minigen.syntax3.node.ADeclInstr;
+import minigen.syntax3.node.AExecInstr;
+import minigen.syntax3.node.AGenericPart;
+import minigen.syntax3.node.AGenericTypes;
 import minigen.syntax3.node.AIsaInstr;
 import minigen.syntax3.node.ANewExp;
 import minigen.syntax3.node.ANewInstr;
@@ -30,48 +40,44 @@ import minigen.syntax3.node.AType;
 import minigen.syntax3.node.ATypeInstr;
 import minigen.syntax3.node.AVarExp;
 import minigen.syntax3.node.Node;
+import minigen.syntax3.node.PAdditionalTypes;
 import minigen.syntax3.node.PClassDecl;
 import minigen.syntax3.node.PInstr;
 
 public class Compiler extends DepthFirstAdapter {
 
 	private Model model;
-	private Scope scope;
 
 	private ICodeFactory factory;
 	private ICodeCompiler builder;
 
+	private Scope currentScope;
 	private Program currentProgram;
 	private Symbol currentSymbol;
 	private Var currentVar;
-	
+	private Class currentClass;
+	private Function currentFunction;
+	private List<Statement> currentStatements;
+
 	private boolean newFlag = false;
 
-	private HashMap<String, Symbol> typeSymbols;
+	private Map<String, Symbol> typeSymbols;
 	private Map<Var, Symbol> symbolsByVars;
 
 	private int objCount;
 	private int clsCount;
 
-	public Compiler(Model model, Scope scope, FileWriter out) {
+	public Compiler(Model model, FileWriter out) {
 		this.model = model;
-		this.scope = scope;
+		this.currentScope = new Scope();
+		this.symbolsByVars = new HashMap<Var, Symbol>();
+		this.typeSymbols = new HashMap<String, Symbol>();
 
 		this.factory = new ICodeFactory();
 		this.builder = new ICodeCompiler(out);
 
-		this.symbolsByVars = new HashMap<Var, Symbol>();
-		this.typeSymbols = new HashMap<String, Symbol>();
-
 		this.objCount = 0;
 		this.clsCount = 0;
-
-		// System.out.println("------- Compilation Statistics -------");
-		// System.out.println();
-		//
-		// System.out.println("-------------------------------");
-		// System.out.println();
-
 	}
 
 	private Type currentType;
@@ -93,12 +99,12 @@ public class Compiler extends DepthFirstAdapter {
 	@Override
 	public void caseAProgram(AProgram node) {
 		this.currentProgram = factory.program();
+		this.currentStatements = this.currentProgram.getStmts();
 
 		// Generate Object class
 		minigen.model.Class cls = model.getClassByName(null, "Object");
 
-		InitStatement objInit = buildClsInit(cls);
-		this.currentProgram.getInitClasses().add(objInit);
+		buildClsInit(cls);
 
 		for (PClassDecl clss : node.getClasses()) {
 			clss.apply(this);
@@ -113,11 +119,43 @@ public class Compiler extends DepthFirstAdapter {
 
 	@Override
 	public void caseAClassDecl(AClassDecl node) {
-		minigen.model.Class cls = model.getClassByNode(node.getKclass(), node,
-				"");
+		this.currentClass = model.getClassByNode(node.getKclass(), node, "");
 
-		InitStatement clsInit = buildClsInit(cls);
-		this.currentProgram.getInitClasses().add(clsInit);
+		// Switch scopes
+		Scope savedScope = this.currentScope;
+		this.currentScope = new Scope();
+
+		// this.classScopes.put(this.currentClass, new Scope());
+		buildClsInit(this.currentClass);
+
+		// Build exec fct if class decl contains instrs
+		if (!node.getInstrs().isEmpty()) {
+			this.currentFunction = factory.function(factory
+					.symbol(this.currentClass.getName()));
+			this.currentProgram.getFcts().add(this.currentFunction);
+
+			// Switch statements scopes
+			List<Statement> savedStatements = this.currentStatements;
+			this.currentStatements = this.currentFunction.getStmts();
+
+			// Switch type scopes
+			Map<String, Symbol> savedTypes = this.typeSymbols;
+			this.typeSymbols = new HashMap<String, Symbol>();
+
+			// Visit class stmts
+			for (PInstr instr : node.getInstrs()) {
+				instr.apply(this);
+			}
+
+			// Switch statements and type scopes
+			this.currentStatements = savedStatements;
+			this.typeSymbols = savedTypes;
+		}
+		this.currentClass = null;
+		this.currentFunction = null;
+
+		// Switch scopes
+		this.currentScope = savedScope;
 	}
 
 	@Override
@@ -131,8 +169,13 @@ public class Compiler extends DepthFirstAdapter {
 		node.getType().apply(this);
 		Symbol rightSymbol = this.currentSymbol;
 
-		this.currentProgram.getStmts().add(
-				factory.isaStmt(leftSymbol, rightSymbol));
+		if (this.currentFunction == null) {
+			this.currentStatements
+					.add(factory.isaStmt(leftSymbol, rightSymbol));
+		} else {
+			this.currentFunction.getStmts().add(
+					factory.isaStmt(leftSymbol, rightSymbol));
+		}
 
 		this.currentSymbol = null;
 	}
@@ -140,35 +183,81 @@ public class Compiler extends DepthFirstAdapter {
 	@Override
 	public void caseAVarExp(AVarExp node) {
 		String name = node.getId().getText();
-		this.currentType = this.scope.getVar(node.getId(), name).getType();
-		this.currentSymbol = this.symbolsByVars.get(this.scope.getVar(
+		this.currentType = this.currentScope.getVar(node.getId(), name)
+				.getType();
+		this.currentSymbol = this.symbolsByVars.get(this.currentScope.getVar(
 				node.getId(), name));
 	}
 
 	@Override
 	public void caseAType(AType node) {
-		if (!this.model.containsTypeDeclaration(node)) {
-			throw new InternalError("No type declaration for node " + node);
-		}
-		this.currentType = this.model.getTypeByNode(node);
+		String name = node.getName().getText().trim();
 
-		if (this.newFlag) {
-			this.currentSymbol = factory.symbol("cls_"
-					+ this.currentType.getName());
+		if (this.currentClass != null
+				&& this.currentClass.isFormalTypeDeclared(name)) {
+			this.currentType = new Type(name, null);
+
+			visit(node.getGenericPart());
+
+			if (this.newFlag) {
+				this.currentSymbol = factory.symbol("rec.type.subTypes.get("
+						+ this.currentClass.getFormalType(name).getPosition()
+						+ ").cls");
+			} else {
+				// Build a type table
+				this.currentSymbol = factory.symbol("type_"
+						+ this.currentType.toSymbol());
+				this.objCount++;
+				buildTypeTable(this.currentType, this.currentSymbol, 0);
+			}
 		} else {
-			// Build a type table
-			this.currentSymbol = factory.symbol("type_"
-					+ this.currentType.toSymbol());
-			this.objCount++;
-			buildTypeTable(this.currentType, this.currentSymbol, 0);
+			Class cls = model.getClassByName(node.getName(), name);
+			this.currentType = new Type(name, cls);
+
+			visit(node.getGenericPart());
+
+			if (this.newFlag) {
+				this.currentSymbol = factory.symbol("cls_"
+						+ this.currentType.getName());
+			} else {
+				// Build a type table
+				this.currentSymbol = factory.symbol("type_"
+						+ this.currentType.toSymbol());
+				this.objCount++;
+				buildTypeTable(this.currentType, this.currentSymbol, 0);
+			}
 		}
 	}
 
 	@Override
+	public void caseAGenericPart(AGenericPart node) {
+		visit(node.getGenericTypes());
+	}
+
+	@Override
+	public void caseAGenericTypes(AGenericTypes node) {
+		Type savedType = this.currentType;
+
+		Type type = computeType(node.getType());
+		savedType.addGenericType(type);
+		type = null;
+
+		for (PAdditionalTypes t : node.getAdditionalTypes()) {
+			type = computeType(t);
+			savedType.addGenericType(type);
+			type = null;
+		}
+
+		this.currentType = savedType;
+	}
+
+	@Override
 	public void caseAAssignInstr(AAssignInstr node) {
-		Var var = this.scope.getVar(node.getId(), node.getId().getText());
+		Var var = this.currentScope
+				.getVar(node.getId(), node.getId().getText());
 		this.currentVar = var;
 		node.getExp().apply(this);
+		var.setType(this.currentType);
 		this.currentVar = null;
 		Symbol ref = this.currentSymbol;
 		this.symbolsByVars.put(var, ref);
@@ -176,7 +265,12 @@ public class Compiler extends DepthFirstAdapter {
 
 	@Override
 	public void caseADeclInstr(ADeclInstr node) {
-		Var var = this.scope.getVar(node.getId(), node.getId().getText());
+		String name = node.getId().getText();
+		Type type = computeType(node.getExp());
+		this.currentScope.declareVar(node.getKvar(), name, type);
+
+		Var var = this.currentScope
+				.getVar(node.getId(), node.getId().getText());
 		this.currentVar = var;
 		node.getExp().apply(this);
 		this.currentVar = null;
@@ -204,17 +298,19 @@ public class Compiler extends DepthFirstAdapter {
 		Symbol tClsName = factory.symbol("cls_" + cls.getName());
 		Symbol tTypeName = factory.symbol("type_" + type.toSymbol());
 		this.objCount++;
-		
+
 		Symbol typeInit = buildTypeTable(type, tTypeName, 0);
-		InitStatement objInit = factory.initStmt(factory.type(TypeTag.OBJ), tObjName);
+		InitStatement objInit = factory.initStmt(factory.type(TypeTag.OBJ),
+				tObjName);
 		objInit.getArgs().add(factory.arg(objId.toString()));
 		objInit.getArgs().add(factory.arg(tClsName.toString()));
-		objInit.getArgs().add(factory.arg(typeInit.toString()));
-		
+		objInit.getArgs().add(factory.arg(typeInit));
+
 		this.currentSymbol = tObjName;
-		this.currentProgram.getInitObjs().add(objInit);
+		this.currentStatements.add(objInit);
+		this.currentType = type;
 	}
-	
+
 	@Override
 	public void caseANewInstr(ANewInstr node) {
 		// Compute type
@@ -234,128 +330,187 @@ public class Compiler extends DepthFirstAdapter {
 		Symbol tClsName = factory.symbol("cls_" + cls.getName());
 		Symbol tTypeName = factory.symbol("type_" + tObjName.toString());
 		this.objCount++;
-		
+
 		Symbol typeInit = buildTypeTable(type, tTypeName, 0);
-		InitStatement objInit = factory.initStmt(factory.type(TypeTag.OBJ), tObjName);
+		InitStatement objInit = factory.initStmt(factory.type(TypeTag.OBJ),
+				tObjName);
 		objInit.getArgs().add(factory.arg(objId.toString()));
 		objInit.getArgs().add(factory.arg(tClsName.toString()));
-		objInit.getArgs().add(factory.arg(typeInit.toString()));
-		
+		objInit.getArgs().add(factory.arg(typeInit));
+
 		this.currentSymbol = tObjName;
-		this.currentProgram.getInitObjs().add(objInit);
-	}
-
-	/* Utility methods */
-
-	public Symbol buildTypeTable(Type type, Symbol tObjName, int index) {
-		Symbol tGenName = factory.symbol("type_" + type.toSymbol());
-		
-		if(this.typeSymbols.containsKey(tGenName.toString())) {
-			this.typeSymbols.get(tGenName.toString());
-			this.currentSymbol = tGenName;
-		} else {
-			InitStatement tInit = factory.initStmt(factory.type(TypeTag.TYPE), tGenName);
-			tInit.getArgs().add(factory.arg("cls_" + type.getName()));
-	
-			// Add generic concretes types
-			int i = 0;
-			for (Type genType : type.getGenericTypes()) {
-				buildTypeTable(genType, tGenName, i);
-				ClassElement tElem = factory.typeElement(tInit.getName(), this.currentSymbol);
-				this.currentProgram.getInitElems().add(tElem);
-				i++;
-			}
-			this.typeSymbols.put(tInit.getName().toString(), tInit.getName());
-			this.currentProgram.getInitTypes().add(tInit);
-			this.currentSymbol = tInit.getName();
-		}
-		return tGenName;
-	}
-	
-	public InitStatement buildGenInit(Type t, Symbol adName) {
-		Symbol atypeName = factory.symbol("gen_" + adName.toString() + "_" + t.getName());
-		
-		// Init the gen table
-		InitStatement genInit = factory.initStmt(factory.type(TypeTag.TYPE), atypeName);
-		
-		// Set link to real type or formal type index
-		if(t.isLinkedToFormalType()) {
-			genInit.getArgs().add(factory.arg(t.getFormalType().getPosition().toString()));
-		} else {
-			genInit.getArgs().add(factory.arg("cls_" + t.getName()));
-		}
-		
-		// Build gen part of the type
-		for(Type st: t.getGenericTypes()) {
-			// Build gen table
-			InitStatement genTable = buildGenInit(st, atypeName);
-			
-			// Add it to gen types list
-			ClassElement clsElem = factory.typeElement(genInit.getName(), genTable.getName());
-			this.currentProgram.getInitElems().add(clsElem);
-		}
-		
-		this.currentProgram.getInitAdapts().add(genInit);
-		return genInit;
-	}
-
-	public InitStatement buildAdaptInit(Adaptation a, Class c) {
-		Symbol tAdName = factory.symbol("adapt_" + c.getName() + a.getName());
-		InitStatement adInit = factory.initStmt(factory.type(TypeTag.TYPE), tAdName);
-		adInit.getArgs().add(factory.arg("cls_" + a.getName()));
-		
-		// For each gen type of adaptation
-		for (Type t: a.getTypes()) {
-			// Build gen table
-			InitStatement genTable = buildGenInit(t, tAdName);
-			
-			// Add gen table to adaptation gen list
-			ClassElement clsElem = factory.typeElement(adInit.getName(), genTable.getName());
-			this.currentProgram.getInitElems().add(clsElem);
-		}
-		
-		this.currentProgram.getInitAdapts().add(adInit);
-		return adInit;
-	}
-
-	public InitStatement buildClsInit(Class cls) {
-
-		Symbol tClsName = factory.symbol("cls_" + cls.getName());
-		Integer clsId = this.clsCount;
-		this.clsCount++;
-
-		InitStatement clsInit = factory.initStmt(factory.type(TypeTag.CLASS), tClsName);
-
-		// Add class infos
-		clsInit.getArgs().add(factory.arg(clsId.toString())); // id
-		clsInit.getArgs().add(factory.arg(cls.getColor().toString())); // color
-		clsInit.getArgs().add(factory.arg("\"" + cls.getName() + "\"")); // name
-		
-		for (int color = 0; color < cls.getAdaptationsTable().length; color++) {
-			if (cls.getAdaptationsTable()[color] != null) {
-				InitStatement tAd = buildAdaptInit(cls.getAdaptationsTable()[color], cls);
-				ClassElement clsElem = factory.classElement(clsInit.getName(), tAd.getName().toString());
-				this.currentProgram.getInitElems().add(clsElem);
-			} else {
-				ClassElement clsElem = factory.classElement(clsInit.getName(), "null");
-				this.currentProgram.getInitElems().add(clsElem);
-			}
-		}
-
-		return clsInit;
+		this.currentStatements.add(objInit);
 	}
 
 	@Override
 	public void caseAClassnameInstr(AClassnameInstr node) {
 		node.getExp().apply(this);
-		this.currentProgram.getStmts().add(
-				factory.classnameStatement(this.currentSymbol));
+
+		if (this.currentFunction == null) {
+			this.currentStatements.add(factory
+					.classnameStatement(this.currentSymbol));
+		} else {
+			this.currentFunction.getStmts().add(
+					factory.classnameStatement(this.currentSymbol));
+		}
 	}
 
 	@Override
 	public void caseATypeInstr(ATypeInstr node) {
 		node.getExp().apply(this);
-		this.currentProgram.getStmts().add(
-				factory.typeStatement(this.currentSymbol));
+
+		if (this.currentFunction == null) {
+			this.currentStatements.add(factory
+					.typeStatement(this.currentSymbol));
+		} else {
+			this.currentFunction.getStmts().add(
+					factory.typeStatement(this.currentSymbol));
+		}
+	}
+
+	@Override
+	public void caseAExecInstr(AExecInstr node) {
+		Class calledClass = this.currentScope
+				.getVar(node.getId(), node.getId().getText()).getType()
+				.getIntro();
+
+		Var var = this.currentScope
+				.getVar(node.getId(), node.getId().getText());
+		Symbol rec = this.symbolsByVars.get(var);
+		ExecStatement fct = factory.execStmt(
+				factory.symbol(calledClass.getName()), rec);
+
+		if (this.currentFunction == null) {
+			this.currentStatements.add(fct);
+		} else {
+			this.currentFunction.getStmts().add(fct);
+		}
+	}
+
+	/* Utility methods */
+
+	public TypeSymbol buildTypeTable(Type type, Symbol tObjName, int index) {
+		Symbol tGenName = factory.symbol("type_" + type.toSymbol());
+
+		if (this.typeSymbols.containsKey(tGenName.toString())) {
+			this.typeSymbols.get(tGenName.toString());
+			this.currentSymbol = factory.typeSymbol(tGenName);
+		} else {
+			TypeInitStatement tInit = factory.typeInitStmt(tGenName);
+
+			// Special construct for FT
+			if (type.getIntro() == null) {
+				tInit.getArgs().add(
+						factory.arg("rec.type.subTypes.get(" + index + ")"));
+			} else {
+				tInit.getArgs().add(factory.arg("cls_" + type.getName()));
+			}
+			this.currentStatements.add(tInit);
+
+			// Add generic concretes types
+			int i = 0;
+			for (Type genType : type.getGenericTypes()) {
+				buildTypeTable(genType, tGenName, i);
+				ClassElement tElem = factory.typeElement(
+						factory.typeSymbol(tInit.getName()),
+						factory.typeSymbol(this.currentSymbol));
+				this.currentStatements.add(tElem);
+				i++;
+			}
+			this.typeSymbols.put(tInit.getName().toString(), tInit.getName());
+			this.currentSymbol = factory.typeSymbol(tInit.getName());
+		}
+		return factory.typeSymbol(tGenName);
+	}
+
+	public InitStatement buildGenInit(Type t, Symbol adName) {
+		Symbol atypeName = factory.symbol("gen_" + adName.toString() + "_"
+				+ t.getName());
+
+		// Init the gen table
+		InitStatement genInit = factory.initStmt(factory.type(TypeTag.TYPE),
+				atypeName);
+		this.currentStatements.add(genInit);
+
+		// Set link to real type or formal type index
+		if (t.isLinkedToFormalType()) {
+			genInit.getArgs().add(
+					factory.arg(t.getFormalType().getPosition().toString()));
+		} else {
+			genInit.getArgs().add(factory.arg("cls_" + t.getName()));
+		}
+
+		// Build gen part of the type
+		int i = 0;
+		for (Type st : t.getGenericTypes()) {
+			// Build gen table
+			InitStatement genTable = buildGenInit(st,
+					factory.symbol(atypeName.toString() + "_" + i));
+
+			// Add it to gen types list
+			ClassElement clsElem = factory.typeElement(genInit.getName(),
+					genTable.getName());
+			this.currentStatements.add(clsElem);
+			i++;
+		}
+
+		return genInit;
+	}
+
+	public InitStatement buildAdaptInit(Adaptation a, Class c) {
+		Symbol tAdName = factory.symbol("adapt_" + c.getName() + a.getName());
+		InitStatement adInit = factory.initStmt(factory.type(TypeTag.TYPE),
+				tAdName);
+		this.currentStatements.add(adInit);
+
+		adInit.getArgs().add(factory.arg("cls_" + a.getName()));
+
+		// For each gen type of adaptation
+		int i = 0;
+		for (Type t : a.getTypes()) {
+			// Build gen table
+			InitStatement genTable = buildGenInit(t,
+					factory.symbol(tAdName.toString() + "_" + i));
+
+			// Add gen table to adaptation gen list
+			ClassElement clsElem = factory.typeElement(adInit.getName(),
+					genTable.getName());
+			this.currentStatements.add(clsElem);
+			i++;
+		}
+
+		return adInit;
+	}
+
+	public ClassInit buildClsInit(Class cls) {
+
+		Symbol tClsName = factory.symbol("cls_" + cls.getName());
+		Integer clsId = this.clsCount;
+		this.clsCount++;
+
+		ClassInit clsInit = factory.classInit(factory.type(TypeTag.CLASS),
+				tClsName);
+		this.currentProgram.getInitClasses().add(clsInit);
+
+		// Add class infos
+		clsInit.getArgs().add(factory.arg(clsId.toString())); // id
+		clsInit.getArgs().add(factory.arg(cls.getColor().toString())); // color
+		clsInit.getArgs().add(factory.arg("\"" + cls.getName() + "\"")); // name
+
+		for (int color = 0; color < cls.getAdaptationsTable().length; color++) {
+			if (cls.getAdaptationsTable()[color] != null) {
+				InitStatement tAd = buildAdaptInit(
+						cls.getAdaptationsTable()[color], cls);
+				ClassElement clsElem = factory.classElement(clsInit.getName(),
+						tAd.getName());
+				this.currentStatements.add(clsElem);
+			} else {
+				ClassElement clsElem = factory.classElement(clsInit.getName(),
+						factory.symbol("null"));
+				this.currentStatements.add(clsElem);
+			}
+		}
+
+		return clsInit;
 	}
 }

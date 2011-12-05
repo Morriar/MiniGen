@@ -20,13 +20,23 @@ public abstract class ICode {
 
 		void visit(ClassElement element);
 
+		void visit(ClassInit stmt);
+		
 		void visit(InitStatement stmt);
+		
+		void visit(TypeInitStatement stmt);
+		
+		void visit(TypeSymbol symbol);
 
 		void visit(IsaStatement stmt);
 
 		void visit(ClassnameStatement stmt);
 
+		void visit(ExecStatement stmt);
+
 		void visit(TypeStatement stmt);
+
+		void visit(Function fct);
 
 		void visit(Class cls);
 
@@ -42,20 +52,14 @@ public abstract class ICode {
 	 */
 	public static class Program {
 		private List<Class> classes;
-		private List<Statement> initClasses;
-		private List<Statement> initAdapts;
-		private List<Statement> initTypes;
-		private List<Statement> initObjs;
-		private List<Statement> initElems;
+		private List<Function> fcts;
+		private List<ClassInit> initClasses;
 		private List<Statement> stmts;
 
 		public Program() {
 			this.classes = new ArrayList<Class>();
-			this.initClasses = new ArrayList<Statement>();
-			this.initAdapts = new ArrayList<Statement>();
-			this.initTypes = new ArrayList<Statement>();
-			this.initObjs = new ArrayList<Statement>();
-			this.initElems = new ArrayList<Statement>();
+			this.fcts = new ArrayList<Function>();
+			this.initClasses = new ArrayList<ClassInit>();
 			this.stmts = new ArrayList<Statement>();
 		}
 
@@ -79,24 +83,12 @@ public abstract class ICode {
 			this.stmts = stmts;
 		}
 
-		public List<Statement> getInitClasses() {
+		public List<ClassInit> getInitClasses() {
 			return initClasses;
 		}
 
-		public List<Statement> getInitAdapts() {
-			return initAdapts;
-		}
-
-		public List<Statement> getInitTypes() {
-			return initTypes;
-		}
-
-		public List<Statement> getInitObjs() {
-			return initObjs;
-		}
-
-		public List<Statement> getInitElems() {
-			return initElems;
+		public List<Function> getFcts() {
+			return fcts;
 		}
 	}
 
@@ -143,9 +135,9 @@ public abstract class ICode {
 	 * ICode Param Can be given to a InitStatement
 	 */
 	public static class Arg extends ICode {
-		private String arg;
+		private Symbol arg;
 
-		public Arg(String arg) {
+		public Arg(Symbol arg) {
 			this.arg = arg;
 		}
 
@@ -153,7 +145,7 @@ public abstract class ICode {
 			visitor.visit(this);
 		}
 
-		public String getArg() {
+		public Symbol getArg() {
 			return this.arg;
 		}
 	}
@@ -162,6 +154,37 @@ public abstract class ICode {
 	 * ICode Statement Can be added to a program
 	 */
 	public static abstract class Statement extends ICode {
+	}
+	
+	/**
+	 * ICode ClassInitStatement Init a class table representation
+	 */
+	public static class ClassInit {
+		private Type type;
+		private Symbol name;
+		private List<Arg> args;
+
+		public ClassInit(Type type, Symbol name) {
+			this.type = type;
+			this.name = name;
+			this.args = new ArrayList<Arg>();
+		}
+
+		public void accept(ICodeVisitor visitor) {
+			visitor.visit(this);
+		}
+
+		public Type getType() {
+			return type;
+		}
+
+		public Symbol getName() {
+			return name;
+		}
+
+		public List<Arg> getArgs() {
+			return args;
+		}
 	}
 
 	/**
@@ -194,6 +217,44 @@ public abstract class ICode {
 			return args;
 		}
 	}
+	
+	/**
+	 * ICode TypeInitStatement Init a type representation
+	 */
+	public static class TypeInitStatement extends Statement {
+		private Symbol name;
+		private List<Arg> args;
+
+		public TypeInitStatement(Symbol name) {
+			this.name = name;
+			this.args = new ArrayList<Arg>();
+		}
+
+		public void accept(ICodeVisitor visitor) {
+			visitor.visit(this);
+		}
+
+		public Symbol getName() {
+			return name;
+		}
+
+		public List<Arg> getArgs() {
+			return args;
+		}
+	}
+	
+	/**
+	 * ICode TypeSymbol get a type representation
+	 */
+	public static class TypeSymbol extends Symbol {
+		public TypeSymbol(String name) {
+			super(name);
+		}
+
+		public void accept(ICodeVisitor visitor) {
+			visitor.visit(this);
+		}
+	}
 
 	/**
 	 * ICode ClassElement Elements of Class like adapts, types...
@@ -201,9 +262,9 @@ public abstract class ICode {
 	public static class ClassElement extends Statement {
 		private Symbol id;
 		private Symbol field;
-		private String value;
+		private Symbol value;
 
-		public ClassElement(Symbol id, Symbol field, String value) {
+		public ClassElement(Symbol id, Symbol field, Symbol value) {
 			this.id = id;
 			this.field = field;
 			this.value = value;
@@ -221,7 +282,7 @@ public abstract class ICode {
 			return field;
 		}
 
-		public String getValue() {
+		public Symbol getValue() {
 			return value;
 		}
 	}
@@ -280,6 +341,55 @@ public abstract class ICode {
 
 		public Symbol getExp() {
 			return exp;
+		}
+	}
+
+	public static class ExecStatement extends Statement {
+		private Symbol id;
+		private Symbol rec;
+
+		public ExecStatement(Symbol id, Symbol rec) {
+			this.id = id;
+			this.rec = rec;
+		}
+
+		public void accept(ICodeVisitor visitor) {
+			visitor.visit(this);
+		}
+
+		public Symbol getId() {
+			return id;
+		}
+
+		public Symbol getRec() {
+			return rec;
+		}
+	}
+
+	public static class Function extends ICode {
+		private Symbol name;
+		private List<Statement> stmts;
+
+		public Function(Symbol name, List<Statement> stmts) {
+			this.name = name;
+			this.stmts = stmts;
+		}
+
+		public Function(Symbol name) {
+			this.name = name;
+			this.stmts = new ArrayList<Statement>();
+		}
+
+		public void accept(ICodeVisitor visitor) {
+			visitor.visit(this);
+		}
+
+		public Symbol getName() {
+			return name;
+		}
+
+		public List<Statement> getStmts() {
+			return stmts;
 		}
 	}
 
